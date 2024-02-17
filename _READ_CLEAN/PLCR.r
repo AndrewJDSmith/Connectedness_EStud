@@ -42,14 +42,14 @@ SCD <- read_csv(paste0(MPL_path, "Most_Recent_MPL_Closed_Claims\\Specialty_Code_
 
 
 MPL <- MPL %>%
-  mutate(MPL_OCCURRENCE_DATE=getdate(MPL_OCCURRENCE_DATE),
-         MPL_REPORT_DATE=getdate(MPL_REPORT_DATE),
-         MPL_SUIT_DATE=getdate(MPL_SUIT_DATE),
-         MPL_FIN_DATE_DISP=getdate(MPL_FIN_DATE_DISP)) %>%
-  separate(MPL_OCCURRENCE_DATE, sep="/", into=c("MPL_OCCURENCE_MONTH", NA, "MPL_OCCURENCE_YEAR")) %>%
-  separate(MPL_REPORT_DATE, sep="/", into=c("MPL_REPORT_MONTH", NA, "MPL_REPORT_YEAR")) %>%
-  separate(MPL_SUIT_DATE, sep="/", into=c("MPL_SUIT_MONTH", NA, "MPL_SUIT_YEAR")) %>%
-  separate(MPL_FIN_DATE_DISP, sep="/", into=c("MPL_FIN_DISP_MONTH", NA, "MPL_FIN_DISP_YEAR")) %>%
+  mutate(MPL_OCCURRENCE_DATE_p=getdate(MPL_OCCURRENCE_DATE),
+         MPL_REPORT_DATE_p=getdate(MPL_REPORT_DATE),
+         MPL_SUIT_DATE_p=getdate(MPL_SUIT_DATE),
+         MPL_FIN_DATE_DISP_p=getdate(MPL_FIN_DATE_DISP)) %>%
+  separate(MPL_OCCURRENCE_DATE_p, sep="/", into=c("MPL_OCCURENCE_MONTH", NA, "MPL_OCCURENCE_YEAR")) %>%
+  separate(MPL_REPORT_DATE_p, sep="/", into=c("MPL_REPORT_MONTH", NA, "MPL_REPORT_YEAR")) %>%
+  separate(MPL_SUIT_DATE_p, sep="/", into=c("MPL_SUIT_MONTH", NA, "MPL_SUIT_YEAR")) %>%
+  separate(MPL_FIN_DATE_DISP_p, sep="/", into=c("MPL_FIN_DISP_MONTH", NA, "MPL_FIN_DISP_YEAR")) %>%
   mutate(MPL_OCCURENCE_QTR=qtr(MPL_OCCURENCE_MONTH),
          MPL_OCCURENCE_YEAR=as.double(MPL_OCCURENCE_YEAR),
          MPL_REPORT_QTR=qtr(MPL_REPORT_MONTH),

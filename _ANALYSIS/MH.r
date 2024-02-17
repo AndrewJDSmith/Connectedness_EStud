@@ -7,9 +7,11 @@ library(data.table)
 library(tictoc)
 
 
+LNUM_NPI_xWalk <- read_csv('_DATA/LNUM_NPI_xWalk.csv') %>%
+  rename(LNUM=ATTENPHYID, NPI=ATTEN_PHYNPI)
+
 MPL <- read_csv('_DATA/MPL.csv')
 
-# 2024.02.07: YOU ARE HERE; Come back and get '.q' vs '' consistent
 
 MH_by.occ <- MPL %>%
   filter(MPL_OCCURENCE_YEAR<=2015) %>%
@@ -52,6 +54,10 @@ DOCS <- MPL %>%
   filter(MPL_OCCURENCE_YEAR<=2015 | MPL_REPORT_YEAR<=2015 | MPL_SUIT_YEAR <=2015 | MPL_FIN_DISP_YEAR<=2015) %>%
   distinct(LNUM)
 
+DOCS <- union(DOCS$LNUM, LNUM_NPI_xWalk$LNUM) %>%
+  as.data.frame()
+
+colnames(DOCS) <- 'LNUM'
 
 YEAR <- 1994:2015
 lenY <- length(YEAR)
@@ -76,31 +82,92 @@ MH <- MH %>%
     )
   )
 
+
+
+
 MH <- MH %>%
   group_by(LNUM) %>%
   arrange(LNUM, year) %>%
   mutate(
-    no.suits_rep_all.time = cumsum(no.suits_rep)-no.suits_rep,
+    no.suits_rep_all.time = cumsum(no.suits_rep),
     ever.sued_rep_all.time = ifelse(no.suits_rep_all.time>0, 1, 0),
 
-    no.suits_occ_all.time = cumsum(no.suits_occ)-no.suits_occ,
+    no.suits_occ_all.time = cumsum(no.suits_occ),
     ever.sued_occ_all.time = ifelse(no.suits_occ_all.time>0, 1, 0),
 
-    no.suits_fdr_all.time = cumsum(no.suits_fdr) - no.suits_fdr,
+    no.suits_fdr_all.time = cumsum(no.suits_fdr),
     ever.sued_fdr_all.time = ifelse(no.suits_fdr_all.time>0, 1, 0),
 
-    no.suits_sf_all.time = cumsum(no.suits_sf)-no.suits_sf,
-    ever.sued_sf_all.time = ifelse(no.suits_sf_all.time>0, 1, 0)
-    # ,
+    no.suits_sf_all.time = cumsum(no.suits_sf),
+    ever.sued_sf_all.time = ifelse(no.suits_sf_all.time>0, 1, 0),
 
-    # no.suits_NPDB_all.time = cumsum(no.suits_NPDB)-no.suits_NPDB,
-    # ever.sued_NPDB_all.time = ifelse(no.suits_NPDB_all.time>0, 1, 0),
-    # tot.dmg_NPDB_all.time = cumsum(tot.dmg_fdr)-tot.dmg_fdr,
-    # no.suits_DOH = roll_sum(lag(no.suits_DOH.el), n=40, fill=NA, align = 'right'),
-    # ever.sued_DOH = ifelse(no.suits_DOH>0, 1, 0),
-    # tot.dmg_DOH = roll_sum(lag(tot.dmg_DOH.el), n=40, fill=NA, align = 'right')
-  ) %>%
+    no.suits_NPDB_all.time = cumsum(no.suits_NPDB),
+    ever.sued_NPDB_all.time = ifelse(no.suits_NPDB_all.time>0, 1, 0),
+    
+    no.suits_DOH = roll_sum(no.suits_DOH.el, n=40, fill=NA, align = 'right'),
+    ever.sued_DOH = ifelse(no.suits_DOH>0, 1, 0)
+    
+    )%>%
   ungroup()
+
+
+
+MH <- MH %>%
+  mutate(always.treated_occ=ifelse(year<2009 & ever.sued_occ_all.time>0, 1, 0),
+         always.treated_sf=ifelse(year<2009 & ever.sued_sf_all.time>0, 1, 0),
+         always.treated_rep=ifelse(year<2009 & ever.sued_rep_all.time>0, 1, 0),
+         always.treated_fdr=ifelse(year<2009 & ever.sued_fdr_all.time>0, 1, 0)
+         # ,
+         # always.treated_DOH=ifelse(year<2009 & ever.sued_DOH_>0, 1, 0),
+         # always.treated_NPDB=ifelse(year<2009 & ever.sued_NPDB_all.time>0, 1, 0)
+         )
+
+
+
+# MH.in <- MH %>%
+#   merge(LNUM_NPI_xWalk,
+#         by.x='LNUM',
+#         by.y='ATTENPHYID',
+#         all=F
+#         )
+# 
+# MH.out <- MH %>%
+#   merge(LNUM_NPI_xWalk,
+#         by.x='LNUM',
+#         by.y='ATTENPHYID',
+#         all=T
+#   )
+# 
+# MH.left <- MH %>%
+#   merge(LNUM_NPI_xWalk,
+#         by.x='LNUM',
+#         by.y='ATTENPHYID',
+#         all.x=T,
+#         all.y=F
+#   )
+# 
+# MH.right <- MH %>%
+#   merge(LNUM_NPI_xWalk,
+#         by.x='LNUM',
+#         by.y='ATTENPHYID',
+#         all.x=F,
+#         all.y=T
+#   )
+
+MH <- MH %>%
+  merge(LNUM_NPI_xWalk,
+        by='LNUM',
+        all.x=F,
+        all.y=T) %>%
+  mutate(
+    across(
+      .cols=everything(),
+      .fns=~ifelse(is.na(.)==T, 0, .)
+      )
+    ) 
+
+
+
 
 MH <- MH %>%
   filter(year>=2009) %>%

@@ -36,11 +36,9 @@ PSPP_90 <- read_csv('_DATA/PSPP_90.Fla.csv')
 
 PV <- read_csv('_DATA/PV.csv')
 
-MH.in <- read_csv('_DATA/MH.csv') %>%
-  merge(LNUM_NPI_xWalk,
-        by.x='LNUM',
-        by.y='ATTENPHYID',
-        all=T)
+PSI <- read_csv('_DATA/PSI.csv')
+  
+MH <- read_csv('_DATA/MH.csv') 
   
   # then go to 'HERE NEXT'
 
@@ -87,26 +85,70 @@ ANSAMP.B <- ANSAMP %>%
 ANSAMP <- rbind(ANSAMP.A, ANSAMP.B)
 
 
+docs.ANSAMP <- ANSAMP %>%
+  distinct(npi1)
+
+idx <- sample(1:nrow(docs.ANSAMP), .01*nrow(docs.ANSAMP))
+
+docs.samp <- docs.ANSAMP[idx,]
+
+ANSAMP.samp <- ANSAMP %>%
+  filter(npi1 %in% docs.samp)
+
+ANSAMP.samp <- ANSAMP.samp %>%
+  filter(samedaycount==0) %>%
+  group_by(npi1, year) %>%
+  mutate(
+    vol_shared=sum(benecount)
+  ) %>%
+  ungroup() %>%
+  mutate(share=benecount/vol_shared) %>%
+  group_by(npi1, year) %>%
+  summarize(n_sources=n(),
+            vol_shared=sum(benecount),
+            hhi=sum(share^2)) %>%
+  arrange(npi1, year)
+
+
+
 
 MDPPAS.ctrl <- MDPPAS %>%
   select(-c(spec_prim_1, spec_prim_1_name))
 
+idx <- sample(1:nrow(ANSAMP), .01*nrow(ANSAMP))
 
+ANSAMP.samp <- ANSAMP[idx,]
+
+
+tic()
 ANSAMP <- ANSAMP %>%
   merge(MDPPAS.ctrl,
         by.x=c('npi1', 'year'),
         by.y=c('NPI', 'year'),
         all=F) %>%
   merge(MH,
-        # HERE NEXT: once you have NPI in MH, merge by that and year here
-        )
-  rename_with(name_last:tin2_legal_name, .fn = function(.x){paste0(.x, '_1')}) %>%
+        by.x=c('npi1', 'year'),
+        by.y=c('NPI', 'year'),
+        all=F
+        ) %>%
+  merge(PV,
+        by.x=c('npi1', 'year'),
+        by.y=c('NPI', 'year'),
+        all=F) %>%
+  merge(PSI,
+        by.x=c('npi1', 'year'),
+        by.y=c('NPI', 'year'),
+        all=F) %>%
+  rename_with(name_last:PSIAny_rate_3y, .fn = function(.x){paste0(.x, '_1')}) %>%
   merge(MDPPAS.ctrl,
         by.x=c('npi2', 'year'),
         by.y=c('NPI', 'year'),
         all=F) %>%
   rename_with(name_last:tin2_legal_name, .fn = function(.x){paste0(.x, '_2')})
 
+toc()
 
+  
+  
 
-
+# write_csv(ANSAMP, '_DATA/ANSAMP.csv')

@@ -20,6 +20,27 @@ source('paths.r')
 #          DRGDESC=drgdesc)
 
 
+# 2000--2004
+
+for(y in 0:4){
+  for (q in 1:4) {
+  
+  HIF.i <- read.dbf(paste0(HIF_path, "200", y, "_DBF\\0",y,"_Q", q, "In.dbf")) %>%
+    #filter(ADMTYPE==3) %>%
+    #filter(PAYER=="A") %>%
+    #filter(ADMSRC=='01' | ADMSRC=='02') #%>%
+    select(SYS_RECID, YEAR, QTR, ZIPCODE, 
+           ATTENPHYID,
+           OPERPHYID
+    ) %>%
+    mutate(ATTEN_PHYNPI=NA,
+           OPER_PHYNPI=NA)
+  
+  
+  assign(paste0("HIF_200", y, ".", q), HIF.i)
+
+}
+}
 
 # 2005
 
@@ -312,133 +333,6 @@ write_csv(HIF, '_DATA/HIF.csv')
 #   )
 
 
-DOCS <- HIF %>%
-  distinct(ATTENPHYID) 
-# set.seed(42069)
-# size <- ceiling(.1*nrow(DOCS.vec))
-# DOCS.vec <- sample(DOCS.vec$ATTENPHYID, size=size, replace=F) %>%
-#    data.frame()
-
-# colnames(DOCS.vec) <- "ATTENPHYID"
-
-# testaroo <- DISCH %>%
-# filter(ATTENPHYID %in% DOCS.vec$ATTENPHYID) %>%
-#    select(SYS_RECID, YEAR, QTR, ATTENPHYID) %>%
-#   group_by(ATTENPHYID, YEAR, QTR) %>%
-#   summarize(pat.vol.q=n_distinct(SYS_RECID))
-
-YEAR <- 2005:2015
-lenY <- length(YEAR)
-lenD <- nrow(DOCS)
-DOCS <- rbindlist(replicate(lenY*4, DOCS, simplify=F))
-QTR <- rep(1:4, each=lenD)
-QTR <- rep(QTR, times=lenY)
-YEAR <- rep(YEAR, each=4*lenD)
-
-PV.placeholder <- data.frame(DOCS, YEAR, QTR) %>%
-  mutate(YEAR.QTR=paste0(YEAR, '.', QTR))
-
-
-PV <- HIF %>%
-  group_by(ATTENPHYID, YEAR, QTR) %>%
-  summarise(pat.vol.q = n_distinct(SYS_RECID))
-
-  
-
-PV <- merge(PV.placeholder, PV, by=c("ATTENPHYID", "YEAR", "QTR"), all.x = T, all.y=T) %>%
-  mutate(
-    across(
-      .cols=everything(),
-      .fns= ~ ifelse(is.na(.)==T, 0, .)
-      )
-    )
-         
-
-# 2023.09.22
-# Probably did not make sense to return here and do this now, but added _l4y, _l5y, and _cum.
-# The first two are probably fine, but probably need to go back and kick the tires on _cum.
-# Specifically, probably want to get all years/qtrs going back to 1999 for this ish.
-# 2023.10.03
-# Ran this without looking at above comment first. Holding off on going all the way back to 1999
-# for now.
-
-PV <- PV %>%
-  arrange(ATTENPHYID, YEAR, QTR) %>%
-  group_by(ATTENPHYID) %>%
-  mutate(pat.vol_lq = lag(pat.vol.q, 1),
-         pat.vol_ly = roll_sum(
-                               lag(pat.vol.q),
-                               4,
-                               fill=NA,
-                               align='right'
-                               ),
-         pat.vol_l2y = roll_sum(
-                                lag(pat.vol.q),
-                                8,
-                                fill=NA,
-                                align='right'
-                                ),
-         pat.vol_l3y = roll_sum(
-                                lag(pat.vol.q),
-                                12,
-                                fill=NA,
-                                align='right'
-                                ),
-         pat.vol_l4y = roll_sum(
-                                lag(pat.vol.q),
-                                16,
-                                fill=NA,
-                                align='right'
-                                ),
-         pat.vol_l5y = roll_sum(
-                                lag(pat.vol.q),
-                                20,
-                                fill=NA,
-                                align='right'
-                                ),
-         pat.vol_l6y = roll_sum(
-                                lag(pat.vol.q),
-                                24,
-                                fill=NA,
-                                align = 'right'
-                                ),
-         pat.vol_l7y = roll_sum(lag(pat.vol.q),
-                                28,
-                                fill=NA,
-                                align='right'
-                                ),
-         pat.vol_cum = cumsum(pat.vol.q)-pat.vol.q
-         )
-
-PV <- PV %>%
-  filter(YEAR>=2009)
-
-
-
-
-
-
-
-# Below is deprecated
-# ,
-#          pat.vol.ly=lag(pat.vol.q, 1) + lag(pat.vol.q, 2) + 
-#            lag(pat.vol.q, 3) + lag(pat.vol.q, 4),
-#          pat.vol.l5=lag(pat.vol.q, 1) + lag(pat.vol.q, 2) + 
-#            lag(pat.vol.q, 3) + lag(pat.vol.q, 4) +
-#            lag(pat.vol.q, 5) + lag(pat.vol.q, 6) + 
-#            lag(pat.vol.q, 7) + lag(pat.vol.q, 8) +
-#            lag(pat.vol.q, 9) + lag(pat.vol.q, 10) + 
-#            lag(pat.vol.q, 11) + lag(pat.vol.q, 12) +
-#            lag(pat.vol.q, 13) + lag(pat.vol.q, 14) + 
-#            lag(pat.vol.q, 15) + lag(pat.vol.q, 16) +
-#            lag(pat.vol.q, 17) + lag(pat.vol.q, 18) + 
-#            lag(pat.vol.q, 19) + lag(pat.vol.q, 20)
-#          )
-# 
-# PV <- PV %>%
-#   filter(YEAR>=2010)
-
-write_csv(PV, "_DATA/PV.csv")
 
 
 
