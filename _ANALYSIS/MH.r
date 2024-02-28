@@ -18,6 +18,7 @@ MH_by.occ <- MPL %>%
   mutate(year=MPL_OCCURENCE_YEAR) %>%
   group_by(LNUM, year) %>%
   summarize(no.suits_occ=n(),
+            no.suits_occ_pos=sum(MPL_INDEMNITY_PAID>0),
             tot.dmg_occ=sum(MPL_INDEMNITY_PAID, na.rm=T)
   ) 
 
@@ -26,6 +27,7 @@ MH_by.suit <- MPL %>%
   mutate(year=MPL_SUIT_YEAR) %>%
   group_by(LNUM, year) %>%
   summarize(no.suits_sf=n(),
+            no.suits_sf_pos=sum(MPL_INDEMNITY_PAID>0),
             tot.dmg_sf=sum(MPL_INDEMNITY_PAID, na.rm=T)
   ) 
 
@@ -35,6 +37,7 @@ MH_by.rep <- MPL %>%
   mutate(year=MPL_REPORT_YEAR) %>%
   group_by(LNUM, year) %>%
   summarize(no.suits_rep = n(),
+            no.suits_rep_pos=sum(MPL_INDEMNITY_PAID>0),
             tot.dmg_rep = sum(MPL_INDEMNITY_PAID, na.rm=T)
   ) 
 
@@ -44,6 +47,7 @@ MH_by.fdr <- MPL %>%
          INDEMNITY_DOH = ifelse(MPL_INDEMNITY_PAID>100000, MPL_INDEMNITY_PAID, 0)) %>%
   group_by(LNUM, year) %>%
   summarize(no.suits_fdr = n(),
+            no.suits_fdr_pos=sum(MPL_INDEMNITY_PAID>0),
             tot.dmg_fdr = sum(MPL_INDEMNITY_PAID, na.rm=T),
             no.suits_NPDB = sum(MPL_INDEMNITY_PAID>0),
             no.suits_DOH.el = sum(MPL_INDEMNITY_PAID>100000)
@@ -90,27 +94,35 @@ MH <- MH %>%
   arrange(LNUM, year) %>%
   mutate(
     no.suits_rep_all.time = cumsum(no.suits_rep),
+    no.suits_rep_pos_all.time = cumsum(no.suits_rep_pos),
     ever.sued_rep_all.time = ifelse(no.suits_rep_all.time>0, 1, 0),
+    ever.sued_rep_pos_all.time = ifelse(no.suits_rep_pos_all.time>0, 1, 0),
 
     no.suits_occ_all.time = cumsum(no.suits_occ),
+    no.suits_occ_pos_all.time = cumsum(no.suits_occ_pos),
     ever.sued_occ_all.time = ifelse(no.suits_occ_all.time>0, 1, 0),
+    ever.sued_occ_pos_all.time = ifelse(no.suits_occ_pos_all.time>0, 1, 0),
 
     no.suits_fdr_all.time = cumsum(no.suits_fdr),
+    no.suits_fdr_pos_all.time = cumsum(no.suits_fdr),
     ever.sued_fdr_all.time = ifelse(no.suits_fdr_all.time>0, 1, 0),
+    ever.sued_fdr_pos_all.time = ifelse(no.suits_fdr_pos_all.time>0, 1, 0),
 
     no.suits_sf_all.time = cumsum(no.suits_sf),
-    ever.sued_sf_all.time = ifelse(no.suits_sf_all.time>0, 1, 0),
+    no.suits_sf_pos_all.time = cumsum(no.suits_sf_pos),
+    ever.sued_sf_pos_all.time = ifelse(no.suits_sf_pos_all.time>0, 1, 0),
 
     no.suits_NPDB_all.time = cumsum(no.suits_NPDB),
     ever.sued_NPDB_all.time = ifelse(no.suits_NPDB_all.time>0, 1, 0),
-    
+
     no.suits_DOH = roll_sum(no.suits_DOH.el, n=40, fill=NA, align = 'right'),
     ever.sued_DOH = ifelse(no.suits_DOH>0, 1, 0)
     
     )%>%
   ungroup()
 
-
+# 2024.02.23: RETURN HERE. Created always treated by positive damages below. No
+# time now.
 
 MH <- MH %>%
   mutate(always.treated_occ=ifelse(year<2009 & ever.sued_occ_all.time>0, 1, 0),
@@ -120,7 +132,14 @@ MH <- MH %>%
          # ,
          # always.treated_DOH=ifelse(year<2009 & ever.sued_DOH_>0, 1, 0),
          # always.treated_NPDB=ifelse(year<2009 & ever.sued_NPDB_all.time>0, 1, 0)
-         )
+         ) %>%
+  group_by(LNUM) %>%
+  mutate(always.treated_occ=max(always.treated_occ),
+         always.treated_sf=max(always.treated_sf),
+         always.treated_rep=max(always.treated_rep),
+         always.treated_fdr=max(always.treated_fdr)
+         ) %>%
+  ungroup()
 
 
 

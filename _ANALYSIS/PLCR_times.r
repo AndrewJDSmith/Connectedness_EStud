@@ -4,6 +4,7 @@ library(tidyverse)
 library(RcppRoll)
 library(data.table)
 library(tictoc)
+library(knitr)
 
 
 MPL <- read_csv('_DATA/MPL.csv') 
@@ -27,19 +28,29 @@ TIMES <- MPL %>%
          OCC_to_FIN_DISP=as.double(difftime(MPL_FIN_DATE_DISP,
                                   MPL_OCCURRENCE_DATE,
                                   units = 'days'
-                                  ))/365.25
+                                  ))/365.25,
+         REP_to_SUIT=as.double(difftime(MPL_SUIT_DATE,
+                                        MPL_REPORT_DATE,
+                                        units='days'
+                                        ))/365.25,
+         REP_to_FIN_DISP=as.double(difftime(MPL_FIN_DATE_DISP,
+                                            MPL_REPORT_DATE,
+                                            units='days'
+                                            ))/365.25
          ) %>%
-  select(OCC_to_SUIT, OCC_to_REP, OCC_to_FIN_DISP) %>%
+  select(OCC_to_SUIT, OCC_to_REP, OCC_to_FIN_DISP, REP_to_SUIT, REP_to_FIN_DISP) %>%
   
   # 2024.02.11: Relevant to what are reasonable inclusion criteria: SoL for med mal cases described at Fla. Stat Ann.
   # Sec. 95.11(4)(a)--(b)
-  filter(OCC_to_SUIT>=0) %>%
-  filter(OCC_to_SUIT<=7)
+  filter(is.na(OCC_to_SUIT)==T | is.na(OCC_to_SUIT)>=0) %>%
+  filter(is.na(OCC_to_SUIT)==T | OCC_to_SUIT<=7)
 
 
 
 summary(TIMES)
 
-quantile(TIMES$OCC_to_SUIT, .95)
+quantile(TIMES$OCC_to_SUIT, .95, na.rm=T)
 quantile(TIMES$OCC_to_REP, .95)
 quantile(TIMES$OCC_to_FIN_DISP, .95)
+
+save(TIMES, file='_DATA/TIMES.RData')

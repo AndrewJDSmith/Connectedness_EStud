@@ -1,0 +1,572 @@
+---
+title: "What’s a Little Malpractice Between Friends? How Malpractice Affects Referral Relationships Between Physicians"
+subtitle: "[PRELIMINARY DRAFT, NOT FOR DISTRIBUTION]"
+author: 
+  - Andrew J.D. Smith^[PhD Candidate, Emory University Department of Economics.] ^[This paper was written using a limited data set supplied by the Florida Agency for Health Care Administration (AHCA). The AHCA specifically disclaims responsibility for any analysis, interpretations, and conclusions that were drawn from this limited data set.]
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+# abstract: "Placeholder."
+header-includes:
+  - \setlength{\parindent}{4em}
+  - \usepackage{setspace}\doublespacing
+  - \usepackage{placeins}
+  - \usepackage{bbm}
+  - \usepackage{booktabs}
+fig_caption: yes
+toc: FALSE
+output:
+  bookdown::pdf_document2:
+    keep_tex: true
+    number_sections: TRUE
+    latex_engine: lualatex
+fontsize: 12pt    
+bibliography: references.bib
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=F)
+rm(list=ls())
+
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(modelsummary)
+library(kableExtra)
+library(did)
+library(latex2exp)
+library(stringr)
+
+```
+
+```{r loaddata, include=FALSE}
+
+# MPL <- read_csv('_DATA/MPL.csv')
+
+ANSAMP <- read_csv('_DATA/ANSAMP.csv')
+
+ANSAMP.rep <- read_csv('_DATA/ANSAMP.rep.csv')
+
+ANSAMP.spec.src <- read_csv('_DATA/ANSAMP.spec.src.csv')
+
+# ANSAMP.spec.dest <- read_csv('_Data/ANSAMP.spec.dest.csv')
+
+load('_DATA/TIMES.RData')
+
+load('_DATA/results.overall.RData')
+
+load('_DATA/fuckers.RDATA')
+```
+
+```{r functions, include=FALSE}
+
+```
+
+
+# Introduction
+
+Physicians are motivated by a variety of incentives, and not all of these incentives align. For example, recent work describes how the profit motive can cause physicians to provide improper care for patients. [@GeKw2024]. One interesting incentive for physicians is the desire to avoid being sued for medical malpractice. Defensive medicine, when physicians either perform unnecessary services or avoid risky, but necessary services solely for the purpose of avoiding a malpractice lawsuit, is well documented. However, only recently have researchers started to examine defensive medicine behavior and motivation at the level of individual physicians.
+
+In this paper, I study how specialist physicians' referral structures are affected by being sued for medical malpractice. Answering this question helps shed light on why doctors are so determined to avoid being sued that they are willing to deviate from optimal care. While it may seem obvious why a physician would want to avoid a lawsuit, the reasons are not actually entirely clear. Medical malpractice insurance is both ubiquitous and very protective, which suggests that something other than direct financial concerns motivate their behavior. 
+
+@CuMa2008 hypothesize that reputational concerns drive defensive medicine behavior. @Sm2024 begins to test this hypothesis by estimating the role of malpractice history in the demand for orthopedic surgeons. @Sm2024 finds that referring physicians or patients are less likely to see a specialist that has been sued for medical malpractice at any time in the past. While these effects are modest, they are persistent and do not appear to account for whether the claim against the specialist physician was meritorious or meritless. 
+
+However, @Sm2024 cannot distinguish whether it is the prospective patient or the referring physician (or both) that want to avoid a physician who has been sued. In addition, the modest affects observed by @Sm2024 could be the result of a larger patient--referrer disutility that a sued specilist mitigates through some change to their business practices. For example, a physician who has been sued could network to recruit new referral sources or may depend more intensively on remaining referral sources if others no longer send her their patients. 
+
+To answer my research question, I combine data on medical malpractice lawsuits in Florida with Centers for Medicare and Medicaid Services (CMS) data on physician shared patient practice patterns. I infer referral relationships by observing specialist physicians who share patients with primary and general practice doctors. I then characterize these specialist physicians by the number of their referrals sources, the total volume of shared patients, and how concentrated their referrals are by source, as measured by the Herfindahl-Hirschman index.
+
+I employ a difference-in-differences identification strategy to estimate the effect of being sued for medical malpractice on each of the outcomes described above. Because of the staggered nature of the treatment---physicians are sued in all years of my sample period---I rely on one of the recently developed difference-in-differences estimators that is robust to staggered adoption and heterogenous treatment effects. Specifically, I use the @CaSa2021 estimator. This estimator also has the convenient proper that it allows me to use the conditional parallel trends assumption, which is more credible a priori.
+
+Ultimately, I find that being sued for medical malpractice results does not result in any detectable effects to the number of physicians who refer patients to a specialist, the total volume a specialist shares with her referral sources, or the concentration of these referrals. This is consistent with the findings of @Sm2024. That paper finds that one lawsuit (the number at issue in this study) reduces the probability that a physician will be selected by roughly 7.5 percent relative to baseline. In this study, I cannot rule out effects smaller than about 8 percent for all outcomes.
+
+This paper proceeds as follows. Section \@ref(background-and-data) discusses some of the important timing and process involved in a medical malpractice lawsuit and describes the data used in this paper. Section \@ref(empirical-strategy) lays out my empirical strategy and explains the rationale behind my various identifying assumptions. Section \@ref(results) presents my results, and Section \@ref(conclusion) concludes.
+
+# Background and Data
+
+## Background
+
+A patient who believes that she has been injured by a physician's professional negligence can a claim for medical malpractice. A physician will be held liable for medical malpractice he breaches his professional standard of care and that breach causes a patient-plaintiff's injury.
+
+A medical malpractice lawsuit in Florida would typically proceed according to the following pattern. A patient receiving medical care sees a physician. Then, the physician does something (or does not do something), and the patient subsequently experiences some injury. This could be an act of commission---for example, cutting a blood vessel accidentally during a surgery---or omission---for example, not rendering a diagnosis for an illness that ultimately harms the patient. This event is referred to as the *occurrence*. 
+
+If the patient believes her injury was caused by the physician's negligence, she can hire an attorney and being the legal process. At least 90 days before formally filing the lawsuit, the plaintiff-patient must notify the physician of her intent to sue, and the parties can begin some limited discovery at this point.^[Fla. Stat. Ann. \S 766.106] At the conclusion of this period, the plaintiff can file the complaint with the court that initiates formal litigation. This event is referred to as the *filing*.
+
+The filing of the complaint begins the formal litigation process, a full description of which is beyond the scope of this paper. The claim can be resolved in any number of ways. The judge hearing the case could dismiss it for a variety of reasons, including lack of jurisdiction. Either party could win at voluntary arbitration, summary judgement, or at the conclusion of a trial. The parties could settle the claim, which happens frequently. This event is referred to as the *final dispute resolution*. Through all of these mechanisms except judicial dismissal, the plaintiff-patient could receive money damages from the defendant physician.
+
+Florida requires physicians to carry medical malpractice insurance or self-insure, and most physicians choose the former. Florida further requires medical malpractice insurance carriers to report all claims with loss-adjustments greater than $\$5,000$ to the Florida Office of Insurance Regulation (FLOIR), which publishes this information through the Professional Liability Claims Reporting Database (PLCR). The event when the claim is reported to the PLCR is referred to as the *report*.
+
+A medical malpractice claim typically follows a standard timeline. The first event is the occurrence and the last is the final dispute resolution. In between the filing may or may not happen. If the parties all agree on how much the case is worth, they may settle before the plaintiff files suit. Alternatively, the plaintiff-patient might discover that her claim will not succeed during the mandatory pre-suit investigation and abandon her claim. In the PLCR data, a lawsuit is filed in about `r round(100*nrow(filter(TIMES, is.na(OCC_to_SUIT)==F))/nrow(TIMES), 0)` percent of claims. Because of the extensive pre-filing process requirements, claims are reported before the suit is filed in about `r round(100*nrow(filter(TIMES, REP_to_SUIT>0))/nrow(filter(TIMES, is.na(REP_to_SUIT)==F)))` percent of claims where a suit is filed.
+
+
+## Data
+
+### Physician Shared Patient Patterns Data
+
+Data for my outcomes come from the Physician Shared Patient Patterns Data (PSPP), a data set that CMS released in response to a Freedom of Information Act (FOIA) request. Each observation of the PSPP records the number of Medicare beneficiaries two providers see in common over a set period within a year. This period can be 30, 60, 90, or 180 days, and the PSPP is published in a different version for each period length.  For my primary results, I use the 90-day file. The PSPP is available for the years 2009--2015. To protect patient anonymity, the PSPP only includes provider pairs that see $11$ or patients in common during the file period.
+
+### Florida Professional Liability Claims Reports (PLCR)
+
+To see which doctors are sued and when, I rely on the PLCR database. Florida law requires entities insuring physicians and hospitals against medical malpractice liability to report all closed claims to the FLOIR.^[Florida Statutes $\S$ 627.912 (2021)] The PLCR has been publicly available online since at least 2006. The majority of cases---even those where the defendant physician prevails entirely and the insurer pays nothing in damages---involve loss adjustments great than $\$5,000$, and insurance carriers tend to report even those claims with lesser loss-adjustment values. This makes the PLCR a near universe of medical malpractice claims in Florida.
+
+The PLCR database contains information on the name and professional license number of the defendant provider and information on the indemnity payment and loss adjustment of the insurer. Crucially, the PLCR reports dates for each of the four major events---occurrence, report, filing, and final dispute resolution---described in Section \@ref(background). Observations in the PLCR online database are organized by claim. I use the PLCR to determine if a physician has been sued, when they have been sued, and how much was paid to the plaintiff-patient as a settlement or award. These data are available from 1994 to the present.
+
+### Other Sources
+
+To observe physicians' primary specialty and zip code of their primary practice location, I use the Medicare Data on Provider Practice and Specialty (MD-PPAS) dataset. 
+
+<!-- Below paragraph needs to be rewritten. -->
+Finally, the Florida Agency for Health Care Administration publishes the Hospital Inpatient File (HIF), which contains data on inpatient discharges. This data set includes the entire universe of inpatient discharges, is unique to the discharge level, and identifies the time of discharge by year and quarter. This data set identifies the attending and operating physicians by medical license number and national provider identification (NPI) number. It also lists information about patient characteristics (including sex, race, age, and zip code). In addition, this data set contains variables for the priority of the admission (e.g., elective vs. urgent vs. emergency), the principal procedure code, a diagnostic-related group (DRG) code, and the admitting and principal diagnoses. 
+
+I use the Florida discharge data for several purposes. First, I use it to identify patient safety indicator (PSI) events, which I then aggregate to PSI rates. PSIs are ICD-code--based definitions that can be applied to standard-format claims data to identify provider errors. In this article, I attribute errors to the attending physician. For more discussion of PSIs see @Sm2024 and @BlWaZa2017. Second, I use the HIF to calculate how many inpatient hospital stays each physician in my data has overseen.
+
+<!-- I started writing the below paragraph, but then imported the above paragraphs for time. -->
+<!-- Finally, I use the Hospital Inpatient File (HIF). The HIF is provided by the Florida Agency for Healthcare Administration, and it is a universe of inpatient discharges from hospitals in Florida.  -->
+
+### Sample Construction
+
+Using the MD-PPAS data on physicians' specialties, I identify all observations in the PSPP file where a physician with a general or primary practice specialty shares patients with a "referral destination" specialty---a specialty whose visits are likely the product of a deliberate choice and a referral decision. Tables \@ref(tab:src) and \@ref(tab:dest) list the source and destination specialties by how frequently they occur in my data. I infer that each of these pairings, and each of the shared patients, represents a referral. For each physician in referral destination specialty, I calculate the number of referral sources, the total volume of shared Medicare patients, and the Herfindahl-Hirschman index (HHI) of the specialist's referrals. This last value captures how concentrated the specialists' referrals are among different referral sources.  
+<!-- NOTE: code up a Sankey plot to show referral sources and destinations.  -->
+
+### Descriptive Statistics
+
+Table \@ref(tab:sumstats) reports the summary statistics for specialist physicians by whether they have been sued. Variances for each outcome and covariate is quite large relative to the mean. This is likely due to the broad range of specialists that I consider. Compared to physicians who have not been sued, those that have been sued tend to see more patients, as indicated by both shared patient volume and inpatient volume.
+
+# Empirical Strategy
+
+To determine how being sued for malpractice affects a physician's referral relationships, I use a difference-in-differences identification strategy. I consider various treatments. Specifically, I consider separately the effect of an occurrence, a report, a filing, and the final dispute resolution on the outcomes of number of referral sources, volume of shared patients, and concentration of referrals. Because physicians are sued in each year of the 7-year sample period, I use estimators that are robust to staggered treatment timing and heterogeneous treatment effects. [@GB2021]. 
+<!-- Go back and add citaitons to deChaisemartin et al. and Boryusak (sp?) for the anti-TWFE lit. -->
+
+As with all difference-in-differences studies, my identifying assumption is the parallel trends assumption. Different versions of the parallel trends assumption may apply here, and there are trade-offs associated with each. I describe these below.
+
+As a preliminary matter, it makes sense to ask whether any kind of parallel trends assumption could reasonably apply to being sued for medical malpractice. After all, how comparable are physicians who are sued versus those who are not, especially in terms of their desirability as a referral destination? 
+
+As it turns out, research going back to the Harvard Medical Practice Study suggests that claims are brought against physicians quasi-randomly. @LoEtal1991 audit 30,195 inpatient records from New York hospitals in 1984 and link these discharges to 47 medical malpractice claims. Of the 280 discharges with adverse events more than likely caused by negligence, only 8 sued their physicians for medical malpractice; the remaining 39 medical malpractice cases either involved no adverse event or an adverse event determined to be unlikely to be caused by provider negligence. @StEtal2000 find similar results for Utah and Colorado in 1992. Thus, it appears that both type I and type II errors are quite common for the bringing of medical malpractice claims. Malpractice claims that result in payment do appear to be correlated with actual negligent error; however, claims are paid in only 22 percent of all claims. [@JeEtal2011; @StEtal2006]. Taken together, this suggests that physicians who are not sued are indeed a suitable control group for those that are. 
+<!-- Probably want to get that quote about being sued for medical malpractice being like having a traffic cop randomly assign tickets, but that is a secondary matter right now. -->
+
+## Conditional Parallel Trends 
+
+Perhaps the most credible version of the parallel trends assumption in this context is the conditional parallel trends assumption. The above discussion suggests that there is a low probability of a patient's case leading to a medical malpractice lawsuit, and this probability is not well correlated with the presence of a negligence-caused adverse event. However, to the extent that the probability of being sued is distributed randomly across patients, it stands to reason that a physician who sees more patients is more likely to be sued. Indeed, Table \@ref(tab:sumstats) indicates that doctors who are sued see more patients. Previous research similarly shows that the biggest difference between physicians who are sued and those who are not is that physicians who are sued have a higher patient volume. [@Sm2024; @CaCuJe2021]. In addition, despite the apparent disconnect between lawsuits and negligent error, it may nonetheless be more credible to condition the parallel trends on some measure of physician care or safety.
+
+To estimate an average treatment effect on the treated (ATT) and event study using the a conditional parallel trends assumption, I use the @CaSa2021 estimator (hereinafter C&S). Recent research has shown that in addition to the problems of staggered treatment timing, two-way fixed effects estimators are biased in the presence of time-varying covariates. [@SaZh2020]. Unlike the majority of the modern difference-in-differences estimators, the C&S estimator allows for the conditioning of the parallel trends assumption on observable covariates. Because it only requires one of the the propensity score function or the outcome regression to be correctly specified, I choose to use the doubly-robust C&S estimator. For my propensity score function and outcome regression, I use the patient volume and the PSI rate per 1000 at-risk cases in the two years prior to the sample period as covariates. Because patient volume and error rates can vary between specialties in ways that may or may not make physicians within that specialty more likely to be sued, I also include specialty fixed effects in the propensity score function and outcome regression.
+<!-- 2024.02.26: You can probably drop the bit trashing TWFE above. Keeping now to pad length; forgive me.  -->
+
+To yield valid estimates, difference-in-differences with conditional parallel trends requires "strong overlap". [@RoEtal2023; @CaSa2021]. In other words, the conditional probability of being in the treatment group must be bounded away from $1$, and the proportion of treated units is bounded away from zero. Figures \@ref(fig:histpatvol) and \@ref(fig:histpsi) report histograms of patient volume and PSI rates, respectively, by ultimate treatment status. There appears to be strong overlap between physicians who are ultimately sued and those who are not along both dimensions.
+
+
+The C&S estimator works by estimating group-time ATTs, which can then be aggregated in any number of ways. For each outcome and treatment, I report an event study and the overall ATT, which is an across-group average of the group-specific ATTs. 
+
+<!-- ## Unconditional Parallel Trends -->
+
+
+
+## Random Treatment Timing
+<!-- <!-- Need to do a lot of work on this subsection. Big lit review. Do some supporting analysis (e.g., sumstats by year sued) -->
+
+Random treatment timing assumes that, while treatment may not be random, when exactly treatment occurs is actually random or as good as random.  Technically, random treatment timing is not a variation of the parallel trends assumption. It is instead a much stronger assumption. However, given the relative arbitrariness of being sued for malpractice discussed above, it is not a stretch to believe that the random treatment timing assumption holds here.
+
+To the extent that the random treatment timing assumption holds, it carries a significant advantage. By imposing this assumption, I am able to utilize the very efficient @RoSa2023 estimator (hereinafter R&S). This is particularly useful here because, as I will show below, I obtain many statistically insignificant results using the C&S estimator. Using a more efficient estimator allows me to determine whether these insignificant results are true zeros or the result of relatively large standard errors.
+
+<!-- Need to rephrase the following sentence. The latter version of this assumption will hold "if the idiosyncratic factors that determine treatment timing render any permutation of the treatment start dates to be equally likely." [@RoSa2023]. -->
+
+
+
+# Results
+
+Estimates for the overall ATT of being sued for medical malpractice are reported by outcome in Figures \@ref(fig:nsrcatt)--\@ref(fig:lhhiatt). For each outcome, I report the ATTs by their timing (Occurence, Report, Suit Filed, and Final Dispute Resolution) using both the conditional and unconditional parallel trends assumption. Results are almost universally statistically insignificant. Only one out of the 32 estimates---for volume of patients shared with Suit Filed as the timing and with an unconditional parallel trends assumption---is statistically significant, which is about what one should expect under the null hypothesis with $\alpha=.05$. Figure \@ref(fig:volsfestud) presents the event study that corresponds to this estimate, and, indeed, it does not look like there are any statistically significant results here. 
+
+<!-- Confidence intervals vary somewhat between outcomes in terms of how tight they are relative to the sample average. For example, most estimates for "number of sources" can rule out a decrease of 2 sources (`r round(100*2/mean(ANSAMP.rep$n_sources), 2)` percent relative to the average) and an increase of 1.5 sources (`r round(100*1.5/mean(ANSAMP.rep$n_sources), 2)` percent). On the other hand, most estimates for "total volume of shared patients" cannot rule out a decrease of 75 patients () -->
+
+Confidence intervals are somewhat wide. They can fairly consistently only rule out decreases of about 8 percent relative to the sample average of any of the outcomes. Unfortunately, the @RoSa2023 estimator does not yield smaller standard errors here, so these estimates are omitted.^[**NOTE TO SARA**: I am not quite sure what to do about this. On the one hand, they require a stronger identifying assumption but do not generate tighter confidence intervals. On the other hand, with standard errors as large as they are for the Callaway and Sant'Anna estimates, I think an audience would want to see a more efficient estimator tried.]
+
+Figures \@ref(fig:nsrcrepestud)--\@ref(fig:lhhirepestud) present a representative set of event studies for the outcomes considered. Each uses the Report date as the event time and conditions the parallel trends assumption on presample inpatient volume and PSI rate. Overall, it appears that the parallel trends assumption holds across outcomes, and none of the oucomes are affected by being sued for medical malpractice in any statistically or economically significant way.^[**NOTE TO SARA**: I have also run all of these estimates for cardiologists, orthopedic surgeons, and general surgeons separately. On the orthopedic surgeons have some statistically signficant results, and I cannot tease any useful insights out of those at this point.]
+
+<!-- I had the idea to break these down by specialty, but I only got a few (inconsistent) results, and only after REALLY torturing the data. Regroup on this one. -->
+<!-- ## Overall -->
+
+<!-- ## By specialty -->
+
+<!-- ### Ortho -->
+
+<!-- - CS---no significant results -->
+<!-- - RSA:  -->
+<!--     - 5/32 overall results are significant -->
+
+<!--     - event studies tend to confirm these -->
+
+<!-- ### Cardio -->
+
+
+# Conclusion
+
+I am not prepared to draw any firm conclusions at this time.
+
+# References
+
+<div id="refs"></div>
+
+\newpage
+
+# Tables
+
+\FloatBarrier
+
+```{r src}
+
+kable(ANSAMP.spec.src, 
+      caption='Referral Source Specialties',
+      booktabs=T) 
+
+```
+
+\FloatBarrier
+
+```{r dest}
+
+
+ANSAMP.spec.dest <- ANSAMP %>%
+  distinct(npi1, .keep_all = T) %>%
+  group_by(spec_prim_1_name_1) %>%
+  summarise(n=n()) %>%
+  arrange(desc(n)) %>%
+  select(Specialty=spec_prim_1_name_1, `Number of Physicians`=n)
+
+kable(ANSAMP.spec.dest, 
+    caption ='Referral Destination Specialties',
+    booktabs = T)
+
+
+```
+
+\FloatBarrier
+
+```{r sumstats}
+
+ANSAMP.rep.docs <- ANSAMP.rep %>%
+  mutate(PSIRate_pt=1000*PSIAny_rate_l2y_1,
+         treated.ch=ifelse(treated==0, 'Not Sued', 'Sued')
+         ) 
+  
+datasummary(
+  (`Number of Sources`=n_sources) +
+    (`Shared Patients`=vol_shared) +
+    (`HHI`=hhi) +
+    (`Log(HHI)`=lhhi) +
+    (`Inpatient Volume (Previous 2 Years)`=pat.vol_l2y_1) + 
+    (`PSI Rate (per 1000 at-risk cases)`=PSIRate_pt)
+    
+  ~ as.factor(treated.ch)*(Mean + SD),
+  data=ANSAMP.rep.docs,
+  title='Annual Summary Statistics for Specialists'
+) %>%
+  kable_styling(
+    font_size = 10,
+    full_width=F
+  ) %>%
+  footnote(general='Each summary statistic is at the year level.',
+           threeparttable = T
+  )
+
+
+```
+
+\FloatBarrier
+
+\newpage
+
+# Figures
+
+\FloatBarrier
+
+```{r, histpatvol, fig.cap='Distribution of Presample Patient Volume by Ultimate Treatment Status'}
+
+ggplot() +
+  geom_histogram(data=distinct(ANSAMP.rep, npi1, .keep_all = T),
+                 aes(x=pat.vol_l2y_1_pre.samp,
+                     color=as.factor(treated)
+                     )
+  ) +
+  labs(x='Patient Volume',
+       y='Count',
+       color='Legend') +
+  scale_color_manual(values=c('blue', 'red'),
+                     labels=c('Not Sued', 'Sued')
+                     )
+
+
+```
+
+\FloatBarrier
+
+
+```{r, histpsi, fig.cap='Distribution of Presample PSI Rate by Ultimate Treatment Status'}
+
+ggplot() +
+  geom_histogram(data=distinct(ANSAMP.rep, npi1, .keep_all = T),
+                 aes(x=PSIAny_rate_l2y_1_pre.samp,
+                     color=as.factor(treated)
+                     )
+  ) +
+  labs(x='Patient Volume',
+       y='Count',
+       color='Legend') +
+  scale_color_manual(values=c('blue', 'red'),
+                     labels=c('Not Sued', 'Sued')
+                     )
+
+```
+
+```{r}
+results.cs.overall.tab <-  results.cs.overall.tab %>%
+  mutate(timing=case_when(grepl('occ', model)==T ~ 'occ',
+                          grepl('rep', model)==T ~ 'rep',
+                          grepl('sf', model)==T ~ 'sf',
+                          grepl('fdr', model)==T ~ 'fdr',
+                          ),
+         outcome=case_when(grepl('n_sources', model)==T ~ 'n_sources',
+                           grepl('vol_shared', model)==T ~ 'vol_shared',
+                           grepl('hhi', model)==T ~ 'hhi'),
+         outcome=ifelse(grepl('lhhi', model)==T, 'lhhi', outcome),
+         cond=case_when(grepl('tiv', model)==T ~ 'tiv',
+                        grepl('tv', model)==T ~ 'tv',
+                        grepl('uncond', model)==T ~ 'uncond'
+                        )
+         )
+
+results.cs.overall.tab <- results.cs.overall.tab %>%
+  filter(cond != 'tv')
+
+```
+
+```{r nsrcatt, fig.cap='Difference-in-differences estimates of the effect of being sued for malpractice on the number of general and primary practice physicians a specialist receives referrals from.'}
+
+results.cs.overall.tab_n_sources <- results.cs.overall.tab %>%
+  filter(outcome=='n_sources')
+
+
+ggplot(results.cs.overall.tab_n_sources) +
+  geom_pointrange(aes(x=timing,
+                      y=estimate,
+                      ymin=lower,
+                      ymax=upper,
+                      shape=cond),
+                  position = position_dodge(0.3)) +
+  geom_hline(yintercept = 0) + 
+  ggtitle('Number of Referral Sources') +
+  ylab('Estimate') +
+  scale_x_discrete(name='Timing',
+                   limits=c('Occurence'='occ',
+                            'Report'='rep',
+                            'Suit Filed'='sf',
+                            'Final Dispute Resolution'='fdr'
+                            ),
+                   labels=c('Occurence',
+                            'Report',
+                            'Suit Filed',
+                            'Final Dispute Resolution')
+                   ) +
+  scale_shape(name='Parallel Trends \n Assumption',
+              labels=c('Conditional', 'Unconditional')
+              )
+
+
+```
+
+```{r volatt, fig.cap='Difference-in-differences estimates of the effect of being sued for malpractice on the total volume of patients a specialist shares with general and primary practice physicians.'}
+
+results.cs.overall.tab_vol_shared <- results.cs.overall.tab %>%
+  filter(outcome=='vol_shared')
+
+
+ggplot(results.cs.overall.tab_vol_shared) +
+  geom_pointrange(aes(x=timing,
+                      y=estimate,
+                      ymin=lower,
+                      ymax=upper,
+                      shape=cond),
+                  position = position_dodge(0.3)) +
+  geom_hline(yintercept = 0) + 
+  ggtitle('Total Volume of Shared Patients') +
+  ylab('Estimate') +
+  scale_x_discrete(name='Timing',
+                   limits=c('Occurence'='occ',
+                            'Report'='rep',
+                            'Suit Filed'='sf',
+                            'Final Dispute Resolution'='fdr'
+                            ),
+                   labels=c('Occurence',
+                            'Report',
+                            'Suit Filed',
+                            'Final Dispute Resolution')
+                   ) +
+  scale_shape(name='Parallel Trends \n Assumption',
+              labels=c('Conditional', 'Unconditional')
+              )
+
+
+
+```
+
+```{r, hhiatt, fig.cap='Difference-in-differences estimates of the effect of being sued for malpractice on the concentration of specialists\' referrers, as measured by the HHI.'}
+
+results.cs.overall.tab_hhi <- results.cs.overall.tab %>%
+  filter(outcome=='hhi')
+
+
+ggplot(results.cs.overall.tab_hhi) +
+  geom_pointrange(aes(x=timing,
+                      y=estimate,
+                      ymin=lower,
+                      ymax=upper,
+                      shape=cond),
+                  position = position_dodge(0.3)) +
+  geom_hline(yintercept = 0) + 
+  ggtitle('HHI') +
+  ylab('Estimate') +
+  scale_x_discrete(name='Timing',
+                   limits=c('Occurence'='occ',
+                            'Report'='rep',
+                            'Suit Filed'='sf',
+                            'Final Dispute Resolution'='fdr'
+                            ),
+                   labels=c('Occurence',
+                            'Report',
+                            'Suit Filed',
+                            'Final Dispute Resolution')
+                   ) +
+  scale_shape(name='Parallel Trends \n Assumption',
+              labels=c('Conditional', 'Unconditional')
+              )
+
+
+```
+
+```{r, lhhiatt, fig.cap='Difference-in-differences estimates of the effect of being sued for malpractice on the concentration of specialists\' referrers, as measured by  log(HHI).'}
+
+results.cs.overall.tab_lhhi <- results.cs.overall.tab %>%
+  filter(outcome=='lhhi')
+
+
+ggplot(results.cs.overall.tab_lhhi) +
+  geom_pointrange(aes(x=timing,
+                      y=estimate,
+                      ymin=lower,
+                      ymax=upper,
+                      shape=cond),
+                  position = position_dodge(0.3)) +
+  geom_hline(yintercept = 0) + 
+  ggtitle('log(HHI)') +
+  ylab('Estimate') +
+  scale_x_discrete(name='Timing',
+                   limits=c('Occurence'='occ',
+                            'Report'='rep',
+                            'Suit Filed'='sf',
+                            'Final Dispute Resolution'='fdr'
+                            ),
+                   labels=c('Occurence',
+                            'Report',
+                            'Suit Filed',
+                            'Final Dispute Resolution')
+                   ) +
+  scale_shape(name='Parallel Trends \n Assumption',
+              labels=c('Conditional', 'Unconditional')
+              )
+
+
+
+```
+
+```{r, nsrcrepestud, fig.cap='Event study of the effect of being sued on the number of a specialist\'s referral sources. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.'}
+
+# code for getting the b sequence (from fuckers.RData) is in paper.scrap.r
+
+ggplot(b1) +
+  geom_pointrange(aes(x=event.time,
+                      y=estimate,
+                      ymin=estimate-crit.val*se,
+                      ymax=estimate+crit.val*se)) +
+  geom_hline(yintercept = 0) +
+  ylab(TeX(r'($\Delta$ Number of Sources)')) +
+  ggtitle('Number of Sources, Report, Conditional Parallel Trends') +
+  scale_x_discrete(name='Event Time',
+                   limits=c(-5:5)
+                   )
+
+```
+
+```{r, volrepestud, fig.cap='Event study of the effect of being sued on a specialist\'s volume of shared patients. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.'}
+
+
+ggplot(b2) +
+  geom_pointrange(aes(x=event.time,
+                      y=estimate,
+                      ymin=estimate-crit.val*se,
+                      ymax=estimate+crit.val*se)) +
+  geom_hline(yintercept = 0) +
+  ylab(TeX(r'($\Delta$ Volume Shared Patients)')) +
+  ggtitle('Volume Shared Patients, Report, Conditional Parallel Trends') +
+  scale_x_discrete(name='Event Time',
+                   limits=c(-5:5)
+                   )
+
+```
+
+```{r, hhirepestud, fig.cap='Event study of the effect of being sued on the concentration of a specialist\'s referrals as measured by HHI. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.'}
+
+
+
+ggplot(b3) +
+  geom_pointrange(aes(x=event.time,
+                      y=estimate,
+                      ymin=estimate-crit.val*se,
+                      ymax=estimate+crit.val*se)) +
+  geom_hline(yintercept = 0) +
+  ylab(TeX(r'($\Delta$ HHI)')) +
+  ggtitle('HHI, Report, Conditional Parallel Trends') +
+  scale_x_discrete(name='Event Time',
+                   limits=c(-5:5)
+                   )
+
+
+
+
+```
+
+```{r lhhirepestud, fig.cap='Event study of the effect of being sued on the concentration of a specialist\'s referrals as measured by log(HHI). Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.'}
+
+
+ggplot(b4) +
+  geom_pointrange(aes(x=event.time,
+                      y=estimate,
+                      ymin=estimate-crit.val*se,
+                      ymax=estimate+crit.val*se)) +
+  geom_hline(yintercept = 0) +
+  ylab(TeX(r'($\Delta \log(HHI)$)')) +
+  ggtitle('log(HHI), Report, Conditional Parallel Trends') +
+  scale_x_discrete(name='Event Time',
+                   limits=c(-5:5)
+                   )
+
+
+
+```
+
+```{r, volsfestud, fig.cap='Event study of the effect of being sued on a specialist\'s volume of shared patients. Here the timing is based on the report date and the parallel trends assumption is not conditioned on any covariates.'}
+
+
+ggplot(b5) +
+  geom_pointrange(aes(x=event.time,
+                      y=estimate,
+                      ymin=estimate-crit.val*se,
+                      ymax=estimate+crit.val*se)) +
+  geom_hline(yintercept = 0) +
+  ylab(TeX(r'($\Delta$ Volume Shared Patients)')) +
+  ggtitle('Volume Shared Patients, Suit Filed, Unconditional Parallel Trends') +
+  scale_x_discrete(name='Event Time',
+                   limits=c(-5:5)
+                   )
+
+
+
+```
+

@@ -38,10 +38,11 @@ PV <- read_csv('_DATA/PV.csv')
 
 PSI <- read_csv('_DATA/PSI.csv')
   
-MH <- read_csv('_DATA/MH.csv') 
+MH <- read_csv('_DATA/MH.csv') %>%
+  # 2024.02.16: Doc below has 1 NPI, 3 license numbers for some reason. Not sure what's going on here; dropping for now. Figure it out later.
+  filter(NPI != 1932197233)
   
-  # then go to 'HERE NEXT'
-
+ 
 MDPPAS <- read_csv('_DATA/MDPPAS.csv')
 
 REF_SRC <- read_csv('_DATA/Referral_Source_Specialties.csv') %>%
@@ -84,19 +85,22 @@ ANSAMP.B <- ANSAMP %>%
 
 ANSAMP <- rbind(ANSAMP.A, ANSAMP.B)
 
+ANSAMP.spec <- ANSAMP
 
-docs.ANSAMP <- ANSAMP %>%
-  distinct(npi1)
+write_csv(ANSAMP.spec, '_DATA/ANSAMP.spec.csv')
 
-idx <- sample(1:nrow(docs.ANSAMP), .01*nrow(docs.ANSAMP))
-
-docs.samp <- docs.ANSAMP[idx,]
-
-ANSAMP.samp <- ANSAMP %>%
-  filter(npi1 %in% docs.samp)
-
-ANSAMP.samp <- ANSAMP.samp %>%
-  filter(samedaycount==0) %>%
+# docs.ANSAMP <- ANSAMP %>%
+#   distinct(npi1)
+# 
+# idx <- sample(1:nrow(docs.ANSAMP), .01*nrow(docs.ANSAMP))
+# 
+# docs.samp <- docs.ANSAMP[idx,]
+# 
+# ANSAMP.samp <- ANSAMP %>%
+#   filter(npi1 %in% docs.samp)
+  
+ANSAMP <- ANSAMP %>%
+  # filter(samedaycount==0) %>%
   group_by(npi1, year) %>%
   mutate(
     vol_shared=sum(benecount)
@@ -108,47 +112,142 @@ ANSAMP.samp <- ANSAMP.samp %>%
             vol_shared=sum(benecount),
             hhi=sum(share^2)) %>%
   arrange(npi1, year)
+  
 
 
 
 
-MDPPAS.ctrl <- MDPPAS %>%
-  select(-c(spec_prim_1, spec_prim_1_name))
+# hm <- ANSAMP %>% group_by(npi1) %>% summarize(n=n())
+# summary(hm)
 
-idx <- sample(1:nrow(ANSAMP), .01*nrow(ANSAMP))
-
-ANSAMP.samp <- ANSAMP[idx,]
-
+nrow.ANSAMP <- nrow(ANSAMP)
 
 tic()
 ANSAMP <- ANSAMP %>%
-  merge(MDPPAS.ctrl,
+  merge(MDPPAS,
         by.x=c('npi1', 'year'),
         by.y=c('NPI', 'year'),
-        all=F) %>%
+        all=F) 
+
+nrow.ANSAMP.A <- nrow(ANSAMP)
+
+ANSAMP <- ANSAMP %>%
   merge(MH,
         by.x=c('npi1', 'year'),
         by.y=c('NPI', 'year'),
         all=F
-        ) %>%
+        ) 
+
+nrow.ANSAMP.B <- nrow(ANSAMP)
+
+ANSAMP <- ANSAMP %>%
   merge(PV,
         by.x=c('npi1', 'year'),
         by.y=c('NPI', 'year'),
-        all=F) %>%
+        all=F) 
+
+nrow.ANSAMP.C <- nrow(ANSAMP)
+
+ANSAMP <- ANSAMP %>%
   merge(PSI,
         by.x=c('npi1', 'year'),
         by.y=c('NPI', 'year'),
-        all=F) %>%
-  rename_with(name_last:PSIAny_rate_3y, .fn = function(.x){paste0(.x, '_1')}) %>%
-  merge(MDPPAS.ctrl,
-        by.x=c('npi2', 'year'),
-        by.y=c('NPI', 'year'),
-        all=F) %>%
-  rename_with(name_last:tin2_legal_name, .fn = function(.x){paste0(.x, '_2')})
+        all=F) 
+
+nrow.ANSAMP.D <- nrow(ANSAMP)
+
+ANSAMP <- ANSAMP%>%
+  rename_with(name_last:PSIAny_rate_3y, .fn = function(.x){paste0(.x, '_1')}) # %>%
+  # merge(MDPPAS.ctrl,
+  #       by.x=c('npi2', 'year'),
+  #       by.y=c('NPI', 'year'),
+  #       all=F) %>%
+  # rename_with(name_last:tin2_legal_name, .fn = function(.x){paste0(.x, '_2')})
 
 toc()
 
-  
+
+ANSAMP <- ANSAMP %>%
+  mutate(
+    across(.cols=starts_with(c('pat.vol_l', 'PSIAny_rate_l')),
+           .fns=~ifelse(year==2009, ., 0),
+           .names='{.col}_pre.samp'
+         )
+    )%>%
+  group_by(npi1) %>%
+  mutate(
+    across(.cols=ends_with('pre.samp'),
+           .fns=~max(., na.rm=T),
+           .names = '{.col}'
+           )
+         ) %>%
+  ungroup() 
+
+# ANSAMP <- read_csv('_DATA/ANSAMP.csv') 
+
+ANSAMP <- ANSAMP %>%
+  mutate(lhhi=log(hhi))
+
+ANSAMP.occ <- ANSAMP %>%
+  filter(always.treated_occ_1==0) %>%
+  group_by(npi1) %>%
+  mutate(n_years=n()) %>%
+  ungroup() %>%
+  filter(n_years>1) %>%
+  group_by(npi1) %>%
+  mutate(treated = max(ever.sued_occ_all.time_1),
+         first.treat=(ever.sued_occ_all.time_1-lag(ever.sued_occ_all.time_1))*year,
+         first.treat=ifelse(year==2009 & ever.sued_occ_all.time_1==1, 2009, first.treat),
+         first.treat=max(first.treat, na.rm=T)
+         )
   
 
-# write_csv(ANSAMP, '_DATA/ANSAMP.csv')
+ANSAMP.rep <- ANSAMP %>%
+  filter(always.treated_rep_1==0) %>%
+  group_by(npi1) %>%
+  mutate(n_years=n()) %>%
+  ungroup() %>%
+  filter(n_years>1) %>%
+  group_by(npi1) %>%
+  mutate(treated = max(ever.sued_rep_all.time_1),
+         first.treat=(ever.sued_rep_all.time_1-lag(ever.sued_rep_all.time_1))*year,
+         first.treat=ifelse(year==2009 & ever.sued_rep_all.time_1==1, 2009, first.treat),
+         first.treat=max(first.treat, na.rm=T)
+  )
+
+
+ANSAMP.sf <- ANSAMP %>%
+  filter(always.treated_sf_1==0) %>%
+  group_by(npi1) %>%
+  mutate(n_years=n()) %>%
+  ungroup() %>%
+  filter(n_years>1) %>%
+  group_by(npi1) %>%
+  mutate(treated = max(ever.sued_sf_all.time_1),
+         first.treat=(ever.sued_sf_all.time_1-lag(ever.sued_sf_all.time_1))*year,
+         first.treat=ifelse(year==2009 & ever.sued_sf_all.time_1==1, 2009, first.treat),
+         first.treat=max(first.treat, na.rm=T)
+  )
+
+
+ANSAMP.fdr <- ANSAMP %>%
+  filter(always.treated_fdr_1==0) %>%
+  group_by(npi1) %>%
+  mutate(n_years=n()) %>%
+  ungroup() %>%
+  filter(n_years>1) %>%
+  group_by(npi1) %>%
+  mutate(treated = max(ever.sued_fdr_all.time_1),
+         first.treat=(ever.sued_fdr_all.time_1-lag(ever.sued_fdr_all.time_1))*year,
+         first.treat=ifelse(year==2009 & ever.sued_fdr_all.time_1==1, 2009, first.treat),
+         first.treat=max(first.treat, na.rm=T)
+  )
+
+
+
+
+write_csv(ANSAMP, '_DATA/ANSAMP.csv')
+write_csv(ANSAMP.occ, '_DATA/ANSAMP.occ.csv')
+write_csv(ANSAMP.rep, '_DATA/ANSAMP.rep.csv')
+write_csv(ANSAMP.sf, '_DATA/ANSAMP.sf.csv')
+write_csv(ANSAMP.fdr, '_DATA/ANSAMP.fdr.csv')

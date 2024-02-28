@@ -23,7 +23,19 @@ PSI <- PSI %>%
          ATTENPHYID.numpart = ifelse(str_sub(ATTENPHYID.numpart, 1, 2)=="00", str_sub(ATTENPHYID.numpart, 3, nchar(ATTENPHYID.numpart)), ATTENPHYID.numpart),
          ATTENPHYID.numpart = ifelse(str_sub(ATTENPHYID.numpart, 1, 1)=="0", str_sub(ATTENPHYID.numpart, 2, nchar(ATTENPHYID.numpart)), ATTENPHYID.numpart),
          ATTENPHYID = paste0(ATTENPHYID.letter, ATTENPHYID.numpart)
-  )
+  ) %>%
+  select(-c(ATTENPHYID.letter, ATTENPHYID.numpart))
+
+
+EXTRA.YEAR <- PSI %>%
+  distinct(ATTENPHYID, .keep_all = F) %>%
+  mutate(YEAR=2015,
+         QTR=NA,
+         PSIAny_no.raw=NA,
+         PSIAny_at.risk=NA,
+         )
+
+PSI <- rbind(PSI, EXTRA.YEAR)
 
 
 PSI <- PSI %>%  
@@ -88,5 +100,8 @@ PSI <- PSI %>%
   rename(NPI=ATTEN_PHYNPI, LNUM=ATTENPHYID, year=YEAR) %>%
   filter(year>=2009)
   
+
+
+
 
 write_csv(PSI, '_DATA/PSI.csv')
