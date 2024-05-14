@@ -71,19 +71,23 @@ ANSAMP <- PSPP_90 %>%
 ANSAMP.A <- ANSAMP %>%
   filter(spec_prim_1_1 %in% REF_DEST$`Specialty Code` & spec_prim_1_2 %in% REF_SRC$`Specialty Code`)
 
-ANSAMP.B <- ANSAMP %>%
-  filter(spec_prim_1_2 %in% REF_DEST$`Specialty Code` & spec_prim_1_1 %in% REF_SRC$`Specialty Code`) %>%
-  mutate(npi_holding=npi1,
-         npi1=npi2,
-         npi2=npi_holding) %>%
-  select(-npi_holding) %>%
-  mutate(spec_prim_1_holding=spec_prim_1_1,
-         spec_prim_1_1=spec_prim_1_2,
-         spec_prim_1_2=spec_prim_1_holding) %>%
-  select(-spec_prim_1_holding)
+# ANSAMP.B <- ANSAMP %>%
+#   filter(spec_prim_1_2 %in% REF_DEST$`Specialty Code` & spec_prim_1_1 %in% REF_SRC$`Specialty Code`) %>%
+#   mutate(npi_holding=npi1,
+#          npi1=npi2,
+#          npi2=npi_holding) %>%
+#   select(-npi_holding) %>%
+#   mutate(spec_prim_1_holding=spec_prim_1_1,
+#          spec_prim_1_1=spec_prim_1_2,
+#          spec_prim_1_2=spec_prim_1_holding) %>%
+#   select(-spec_prim_1_holding)
+# 
+# 
+# ANSAMP <- rbind(ANSAMP.A, ANSAMP.B)
 
-
-ANSAMP <- rbind(ANSAMP.A, ANSAMP.B)
+# 2024.03.26--Order seems to matter. Trying this again with only ANSAMP.A. If this turns out to be folly,
+#Uncomment above code and delete line below.
+ANSAMP <- ANSAMP.A
 
 ANSAMP.spec <- ANSAMP
 

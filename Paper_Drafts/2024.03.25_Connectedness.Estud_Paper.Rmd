@@ -180,24 +180,10 @@ As it turns out, research going back to the Harvard Medical Practice Study sugge
 
 Perhaps the most credible version of the parallel trends assumption in this context is the conditional parallel trends assumption. The above discussion suggests that there is a low probability of a patient's case leading to a medical malpractice lawsuit, and this probability is not well correlated with the presence of a negligence-caused adverse event. However, to the extent that the probability of being sued is distributed randomly across patients, it stands to reason that a physician who sees more patients is more likely to be sued. Indeed, Table \@ref(tab:sumstats) indicates that doctors who are sued see more patients. Previous research similarly shows that the biggest difference between physicians who are sued and those who are not is that physicians who are sued have a higher patient volume. [@Sm2024; @CaCuJe2021]. In addition, despite the apparent disconnect between lawsuits and negligent error, it may nonetheless be more credible to condition the parallel trends on some measure of physician care or safety.
 
-To estimate an average treatment effect on the treated (ATT) and event study using the a conditional parallel trends assumption, I use the @CaSa2021 estimator (hereinafter C&S). The building block of the C&S estimator is the group-time ATT estimand
-
-\begin{equation}
-ATT(g,t)=\mathbb{E}[Y_t-Y_{g-1}|G_g=1] - \mathbb{E}[Y_t-Y_{g-1}|C=1]
-(\#eq:att-gt)
-\end{equation}
-
-\noindent
-where $Y_{t}$ is one of the outcomes discussed above in year $t$, $G_g=1$ means that doctors are sued in year $g$, and $C=1$ means that doctors are never sued before 2015. Recent research has shown that in addition to the problems of staggered treatment timing, two-way fixed effects estimators are biased in the presence of time-varying covariates. [@SaZh2020]. Unlike the majority of the modern difference-in-differences estimators, the C&S estimator allows for the conditioning of the parallel trends assumption on observable covariates. Because it only requires one of the the propensity score function or the outcome regression to be correctly specified, I choose to use the doubly-robust C&S estimator. Specifically, using the C&S estimator, I estimate $ATT(g,t)$ by
-
-\begin{equation}
-ATT^{nev}_{dr}(g,t)=\mathbb{E}\left[ \left( \frac{G_g}{\mathbb{E}[G_g]}-\frac{\frac{p_g(X)C}{1-p_g(X)}}{\mathbb{E}\left[ \frac{p_g(X)C}{1-p_g(X)} \right]} \right) (Y_t-Y_{g-1}-m^{nev}_{g,t}(X)) \right]
-(\#eq:dr-nvr)
-\end{equation}
-
-For propensity score function $p(X)$ and outcome regression $m^{nev}_{g,t}(X)$, I use the patient volume and the PSI rate per 1000 at-risk cases in the two years prior to the sample period as covariates. Because patient volume and error rates can vary between specialties in ways that may or may not make physicians within that specialty more likely to be sued, I also include specialty fixed effects in the propensity score function and outcome regression.
+To estimate an average treatment effect on the treated (ATT) and event study using the a conditional parallel trends assumption, I use the @CaSa2021 estimator (hereinafter C&S). Recent research has shown that in addition to the problems of staggered treatment timing, two-way fixed effects estimators are biased in the presence of time-varying covariates. [@SaZh2020]. Unlike the majority of the modern difference-in-differences estimators, the C&S estimator allows for the conditioning of the parallel trends assumption on observable covariates. Because it only requires one of the the propensity score function or the outcome regression to be correctly specified, I choose to use the doubly-robust C&S estimator. For my propensity score function and outcome regression, I use the patient volume and the PSI rate per 1000 at-risk cases in the two years prior to the sample period as covariates. Because patient volume and error rates can vary between specialties in ways that may or may not make physicians within that specialty more likely to be sued, I also include specialty fixed effects in the propensity score function and outcome regression.
 <!-- <!-- 2024.02.26: You can probably drop the bit trashing TWFE above. Keeping now to pad length; forgive me.  -->
 <!-- Need to do the propensity score specification test proposed by Sant'Anna and Song (2019). See Callaway and Sant'Anna (2020) -->
+
 
 To yield valid estimates, difference-in-differences with conditional parallel trends requires "strong overlap". [@RoEtal2023; @CaSa2021]. In other words, the conditional probability of being in the treatment group must be bounded away from $1$, and the proportion of treated units is bounded away from zero. Figure \@ref(fig:histpscore) reports the distribution of the estimated propensity score function by ultimate treatment status. There appears to be strong overlap between physicians who are ultimately sued and those who are not.
 <!-- 2024.03.06: Yo, your shit here is weak. Please return after a more thorough reading of Heckman et al. 1997, Abadie 2005, Sant'Anna and Zhao 2020, and Callaway and Sant'Anna 2021. -->
@@ -224,9 +210,7 @@ Estimates for the overall ATT of being sued for medical malpractice are reported
 
 Confidence intervals are somewhat wide. They can fairly consistently only rule out decreases of about 8 percent relative to the sample average of any of the outcomes. Unfortunately, the @RoSa2023 estimator does not yield smaller standard errors here, so these estimates are omitted.^[**NOTE**: I am not quite sure what to do about this. On the one hand, they require a stronger identifying assumption but do not generate tighter confidence intervals. On the other hand, with standard errors as large as they are for the Callaway and Sant'Anna estimates, I think an audience would want to see a more efficient estimator tried.]
 
-Figures \@ref(fig:nsrcrepestud)--\@ref(fig:lhhirepestud) present a representative set of event studies for the outcomes considered. Each uses the Report date as the event time and conditions the parallel trends assumption on presample inpatient volume and PSI rate. Overall, it appears that the parallel trends assumption holds across outcomes, and none of the oucomes are affected by being sued for medical malpractice in any statistically or economically significant way.
-
-<!-- ^[**NOTE**: I have also run all of these estimates for cardiologists, orthopedic surgeons, and general surgeons separately. On the orthopedic surgeons have some statistically signficant results, and I cannot tease any useful insights out of those at this point.] -->
+Figures \@ref(fig:nsrcrepestud)--\@ref(fig:lhhirepestud) present a representative set of event studies for the outcomes considered. Each uses the Report date as the event time and conditions the parallel trends assumption on presample inpatient volume and PSI rate. Overall, it appears that the parallel trends assumption holds across outcomes, and none of the oucomes are affected by being sued for medical malpractice in any statistically or economically significant way.^[**NOTE**: I have also run all of these estimates for cardiologists, orthopedic surgeons, and general surgeons separately. On the orthopedic surgeons have some statistically signficant results, and I cannot tease any useful insights out of those at this point.]
 
 <!-- I had the idea to break these down by specialty, but I only got a few (inconsistent) results, and only after REALLY torturing the data. Regroup on this one. -->
 <!-- ## Overall -->
@@ -246,11 +230,7 @@ Figures \@ref(fig:nsrcrepestud)--\@ref(fig:lhhirepestud) present a representativ
 
 # Conclusion
 
-This study estimates the effect of being sued for malpractice on a specialist's referral relationships. Specifically, I infer referrals from the sharing of patients within 90 days, and I estimate th effect on the number of referral sources, number of total referrals, and the concentration of these referrals. Across outcomes and different timing specifications, I found generally very small point estimates and no statistically significant results. These findings must be considered in the context of @Sm2024, which found that orthopedic surgeons who have been sued once are about .19 percentage points (8 percent relative to baseline) less likely to be selected than a physician who has never been sued.
-
-One interpretation of the results of this study is that the loss of demand found in @Sm2024 are driven by patients. @Sm2024 assumed that the choice of specialist was made by some convex combination of patients and referring physicians but could not distinguish between the roles of each in the decision making process. To the extent that this study finds null results for referring physicians, this would suggest that patients, rather than referring physicians care about a specialist's malpractice history. This may reflect the fact that referring physicians likely have access to additional information on specialist quality that patients do not.
-
-However, one should be cautious about overinterpreting these results. While point estimates are quite small, standard errors are fairly large. Across outcomes, I cannot rule out effect sizes as large as 8 percent. Given that is the size observed in @Sm2024, I hesitate to draw any firm conclusions until confidence intervals can be reduced in size.
+I am not prepared to draw any firm conclusions at this time.
 
 # References
 

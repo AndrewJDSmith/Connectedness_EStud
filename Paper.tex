@@ -138,10 +138,13 @@
 \makeatother
 \subtitle{{[}PRELIMINARY DRAFT, NOT FOR DISTRIBUTION{]}}
 \author{Andrew J.D. Smith\footnote{PhD Candidate, Emory University Department of Economics.} \footnote{This paper was written using a limited data set supplied by the Florida Agency for Health Care Administration (AHCA). The AHCA specifically disclaims responsibility for any analysis, interpretations, and conclusions that were drawn from this limited data set.}}
-\date{02/27/2024}
+\date{04/04/2024}
 
 \begin{document}
 \maketitle
+\begin{abstract}
+In this paper, I estimate the effect of being sued for medical malpractice on specialist physician's referral relationships. Recent work has shown that patients and their referring physicians are less likely to choose a specialist that has been sued. However, this work cannot determine the relative roles of patients and referrers in this decrease. I use difference-in-differences and event study methods to study the effect of being sued for malpractice on the number of physicians who refer to a specialist, the total volume of referrals, and the degree to which these referrals are concentrated amoung the referring physicians. I find that a medical malpractice claim has no statistically significant effect on any of these outcomes. While point estimates are generally relatively small, standard errors are large enough that my confidence intervals cannot exclude the possibility of effects of about 8 percent realtively to the mean across all outcomes.
+\end{abstract}
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -168,17 +171,33 @@ This paper proceeds as follows. Section \ref{background-and-data} discusses some
 \hypertarget{background}{%
 \subsection{Background}\label{background}}
 
-A patient who believes that she has been injured by a physician's professional negligence can a claim for medical malpractice. A physician will be held liable for medical malpractice he breaches his professional standard of care and that breach causes a patient-plaintiff's injury.
+A patient who believes that she has been injured by a physician's professional negligence can file a claim for medical malpractice. A physician will be held liable for medical malpractice he breaches his professional standard of care and that breach causes a patient-plaintiff's injury.
 
 A medical malpractice lawsuit in Florida would typically proceed according to the following pattern. A patient receiving medical care sees a physician. Then, the physician does something (or does not do something), and the patient subsequently experiences some injury. This could be an act of commission---for example, cutting a blood vessel accidentally during a surgery---or omission---for example, not rendering a diagnosis for an illness that ultimately harms the patient. This event is referred to as the \emph{occurrence}.
 
 If the patient believes her injury was caused by the physician's negligence, she can hire an attorney and being the legal process. At least 90 days before formally filing the lawsuit, the plaintiff-patient must notify the physician of her intent to sue, and the parties can begin some limited discovery at this point.\footnote{Fla. Stat. Ann. \S 766.106} At the conclusion of this period, the plaintiff can file the complaint with the court that initiates formal litigation. This event is referred to as the \emph{filing}.
 
-The filing of the complaint begins the formal litigation process, a full description of which is beyond the scope of this paper. The claim can be resolved in any number of ways. The judge hearing the case could dismiss it for a variety of reasons, including lack of jurisdiction. Either party could win at voluntary arbitration, summary judgement, or at the conclusion of a trial. The parties could settle the claim, which happens frequently. This event is referred to as the \emph{final dispute resolution}. Through all of these mechanisms except judicial dismissal, the plaintiff-patient could receive money damages from the defendant physician.
+The filing of the complaint begins the formal litigation process, a full description of which is beyond the scope of this paper. The claim can be resolved in any number of ways. The judge hearing the case could dismiss it for a variety of reasons, including lack of jurisdiction. Either party could win at voluntary arbitration, summary judgement, or at the conclusion of a trial. The parties could settle the claim, which happens frequently. This event is referred to as the \emph{final disposition}. Through all of these mechanisms except dismissal or summary judgment for the defendant, the plaintiff-patient could receive money damages from the defendant physician.
 
 Florida requires physicians to carry medical malpractice insurance or self-insure, and most physicians choose the former. Florida further requires medical malpractice insurance carriers to report all claims with loss-adjustments greater than \(\$5,000\) to the Florida Office of Insurance Regulation (FLOIR), which publishes this information through the Professional Liability Claims Reporting Database (PLCR). The event when the claim is reported to the PLCR is referred to as the \emph{report}.
 
-A medical malpractice claim typically follows a standard timeline. The first event is the occurrence and the last is the final dispute resolution. In between the filing may or may not happen. If the parties all agree on how much the case is worth, they may settle before the plaintiff files suit. Alternatively, the plaintiff-patient might discover that her claim will not succeed during the mandatory pre-suit investigation and abandon her claim. In the PLCR data, a lawsuit is filed in about 69 percent of claims. Because of the extensive pre-filing process requirements, claims are reported before the suit is filed in about 93 percent of claims where a suit is filed.
+A medical malpractice claim typically follows a standard timeline. The first event is the occurrence and the last is the final disposition. In between the filing may or may not happen. If the parties all agree on how much the case is worth, they may settle before the plaintiff files suit. Alternatively, the plaintiff-patient might discover that her claim will not succeed during the mandatory pre-suit investigation and abandon her claim. In the PLCR data, a lawsuit is filed in about 69 percent of claims. Because of the extensive pre-filing process requirements, claims are reported before the suit is filed in about 93 percent of claims where a suit is filed. Claims are initially reported before final disposition in 99.8 percent of cases.
+
+These events could affect physicians' referral streams by signalling physician quality. The signal sent by each category of event varies both by how visible the signal is and how much information the signal conveys about quality. Most occurrence events are are probably not observed by the referrers, which means they probably cannot convey any information about specialist quality. Nonetheless, referrers may learn about the occurrence directly if the act---most likely not an omission---is dramatic enough.
+
+Reports are possibly highly visible, depending on whether referrers or anyone in their close professional circles regularly checks the PLCR. The PLCR has been publicly available online since at least 2006, so anyone who cares to query it can do so easily. However, the report, at least initially, likely has relatively low information value. Because the report so frequently comes before the filing of the suit and the final disposition, the existence of a report without more only reveals that a patient would like to bring a claim against a specialist.
+
+The filing of the suit may be more visible that the initial report, depending on how widely publicized the case is; though for the majority of cases, the filing's visibility will likely depend on how quickly the PLCR is updated. To the extent that the case is visible, it likely contains slightly more information about the strength of the claim than the initial report. Because of Florida's extensive presuit requirements, the filing of a suit indicates that the claimant conducted a presuit investigation and secured an affidavit from an a physician attesting to the merits of the lawsuit. This would suggest a greater likelihood that the claim is meritorious. Indeed, in the Florida data, claims where a suit has been filed recover positive damages 2.41 times more often than claims where no suit is filed.
+
+Like the filing, the final disposition's visibility likely depends on how quickly the PLCR is updated. Occasionally, a dramatic jury verdict might be covered by local media outlets. However, only 10 percent of the claims I observe are disposed of by a court, and that figure includes, for example, summary judgments. Most claims are disposed of by voluntary settlement (64 percent). To the extent that the final disposition is visible, it should convey the most information of any event because it contains information about damages. In theory damages are determined by
+
+\begin{equation}
+  Damages_{ij}=\mathbf{1}\{Liable_i\}*Injury_j
+  \label{eq:damages}
+\end{equation}
+
+\noindent
+where \(\mathbf{1}\{Liable_i\}=1\) if and only if physician \(i\) was negligent in treating patient \(j\), and \(Injury_j\) is the financial value of patient \(j\)'s injuries. Hence, \(Damages_{ij}\) should only be positive if the physician erred, and the larger the patient's injuries---which are likely positively correlated with the extent of the physician's error---the larger the damages. Of course, litigation dynamics and the risk-preferences of the parties can skew actual damages paid away from this theoretical value.
 
 \hypertarget{data}{%
 \subsection{Data}\label{data}}
@@ -186,14 +205,14 @@ A medical malpractice claim typically follows a standard timeline. The first eve
 \hypertarget{physician-shared-patient-patterns-data}{%
 \subsubsection{Physician Shared Patient Patterns Data}\label{physician-shared-patient-patterns-data}}
 
-Data for my outcomes come from the Physician Shared Patient Patterns Data (PSPP), a data set that CMS released in response to a Freedom of Information Act (FOIA) request. Each observation of the PSPP records the number of Medicare beneficiaries two providers see in common over a set period within a year. This period can be 30, 60, 90, or 180 days, and the PSPP is published in a different version for each period length. For my primary results, I use the 90-day file. The PSPP is available for the years 2009--2015. To protect patient anonymity, the PSPP only includes provider pairs that see \(11\) or patients in common during the file period.
+Data for my outcomes come from the Physician Shared Patient Patterns Data (PSPP), a data set that CMS released in response to a Freedom of Information Act (FOIA) request. Each observation of the PSPP records the number of Medicare beneficiaries two providers see in common over a set period within a year. This period can be 30, 60, 90, or 180 days, and the PSPP is published in a different version for each period length. For my primary results, I use the 90-day file. The PSPP is available for the years 2009--2015. To protect patient anonymity, the PSPP only includes provider pairs that see \(11\) or more patients in common during the file period.
 
 \hypertarget{florida-professional-liability-claims-reports-plcr}{%
 \subsubsection{Florida Professional Liability Claims Reports (PLCR)}\label{florida-professional-liability-claims-reports-plcr}}
 
-To see which doctors are sued and when, I rely on the PLCR database. Florida law requires entities insuring physicians and hospitals against medical malpractice liability to report all closed claims to the FLOIR.\footnote{Florida Statutes \(\S\) 627.912 (2021)} The PLCR has been publicly available online since at least 2006. The majority of cases---even those where the defendant physician prevails entirely and the insurer pays nothing in damages---involve loss adjustments great than \(\$5,000\), and insurance carriers tend to report even those claims with lesser loss-adjustment values. This makes the PLCR a near universe of medical malpractice claims in Florida.
+To see which doctors are sued and when, I rely on the PLCR database. Florida law requires entities insuring physicians and hospitals against medical malpractice liability to report all claims where a payment is made to a patient-plaintiff or that involved loss adjustment expenses of more than \(\$5,000\) to the FLOIR.\footnote{Florida Statutes \(\S\) 627.912 (2021)} The majority of cases---even those where the defendant physician prevails entirely and the insurer pays nothing in damages---involve loss adjustments great than \(\$5,000\), and insurance carriers tend to report even those claims with lesser loss-adjustment values. This makes the PLCR a near universe of medical malpractice claims in Florida.
 
-The PLCR database contains information on the name and professional license number of the defendant provider and information on the indemnity payment and loss adjustment of the insurer. Crucially, the PLCR reports dates for each of the four major events---occurrence, report, filing, and final dispute resolution---described in Section \ref{background}. Observations in the PLCR online database are organized by claim. I use the PLCR to determine if a physician has been sued, when they have been sued, and how much was paid to the plaintiff-patient as a settlement or award. These data are available from 1994 to the present.
+The PLCR database contains information on the name and professional license number of the defendant provider and information on the indemnity payment and loss adjustment of the insurer. Crucially, the PLCR reports dates for each of the four major events---occurrence, report, filing, and final disposition---described in Section \ref{background}. Observations in the PLCR online database are organized by claim. I use the PLCR to determine if a physician has been sued, when they have been sued, and how much was paid to the plaintiff-patient as a settlement or award. These data are available from 1994 to the present.
 
 \hypertarget{other-sources}{%
 \subsubsection{Other Sources}\label{other-sources}}
@@ -207,7 +226,13 @@ I use the Florida discharge data for several purposes. First, I use it to identi
 \hypertarget{sample-construction}{%
 \subsubsection{Sample Construction}\label{sample-construction}}
 
-Using the MD-PPAS data on physicians' specialties, I identify all observations in the PSPP file where a physician with a general or primary practice specialty shares patients with a ``referral destination'' specialty---a specialty whose visits are likely the product of a deliberate choice and a referral decision. Tables \ref{tab:src} and \ref{tab:dest} list the source and destination specialties by how frequently they occur in my data. I infer that each of these pairings, and each of the shared patients, represents a referral. For each physician in referral destination specialty, I calculate the number of referral sources, the total volume of shared Medicare patients, and the Herfindahl-Hirschman index (HHI) of the specialist's referrals. This last value captures how concentrated the specialists' referrals are among different referral sources.\\
+Using the MD-PPAS data on physicians' specialties, I identify all observations in the PSPP file where a physician with a general or primary practice specialty shares patients with a ``referral destination'' specialty---a specialty whose visits are likely the product of a deliberate choice and a referral decision. Tables \ref{tab:src} and \ref{tab:dest} list the source and destination specialties by how frequently they occur in my data. I infer that each of these pairings represents a referral relationship and that each of the shared patients represents a referral. For each physician who practices in a referral destination specialty, I calculate the number of referral sources, the total volume of shared patients, and the Herfindahl-Hirschman index (HHI) of the specialist's referrals.
+
+The number of referral sources is simply the number of physicians practicing in a referral source specialty that shares patients with the specialist. A lawsuit could cause this to decrease because fewer referral sources would be inclined to send their patients to the sued specialist. On the other hand, if a specialist responds to a drop in referrals by increasing her marketing and networking efforts, the number of sources could actually increase.
+
+The total volume of shared patients is the number of medicare patients seen by a specialist that are also seen by a doctor from a referral source specialty. This number is likely to decrease following a malpractice lawsuit unless the sued specialist can drum up enough new referrals to compensate.
+
+The HHI of a specialist's referral portfolio captures how concentrated the specialists' referrals are among different referral sources. It is calculated in the usual way---\(HHI_i=\sum_{j}s^2_{ij}\), where \(s_{ij}=\frac{Patients_{ij}}{Patients_i}\). A specialist's HHI could increase following a medical malpractice if the referrers that send the specialist the fewest patients disproportionately reduce their referrals to the specialist. This might be the case if these are the doctors with the loosest connections to the specialist, so the fact of a medical malpractice lawsuit might be the strongest signal they have of the specialist's quality. On the other hand, if specialists compensate for lost referrals by forming more, smaller referral relationships with new referral sources, then HHI might decrease.
 
 \hypertarget{descriptive-statistics}{%
 \subsubsection{Descriptive Statistics}\label{descriptive-statistics}}
@@ -217,22 +242,37 @@ Table \ref{tab:sumstats} reports the summary statistics for specialist physician
 \hypertarget{empirical-strategy}{%
 \section{Empirical Strategy}\label{empirical-strategy}}
 
-To determine how being sued for malpractice affects a physician's referral relationships, I use a difference-in-differences identification strategy. I consider various treatments. Specifically, I consider separately the effect of an occurrence, a report, a filing, and the final dispute resolution on the outcomes of number of referral sources, volume of shared patients, and concentration of referrals. Because physicians are sued in each year of the 7-year sample period, I use estimators that are robust to staggered treatment timing and heterogeneous treatment effects. (Goodman-Bacon 2021).
+To determine how being sued for malpractice affects a physician's referral relationships, I use a difference-in-differences identification strategy. I consider various treatments. Specifically, I consider separately the effect of an occurrence, a report, a filing, and the final disposition on the outcomes of number of referral sources, volume of shared patients, and concentration of referrals. Because physicians are sued in each year of the 7-year sample period, I use estimators that are robust to staggered treatment timing and heterogeneous treatment effects. (Goodman-Bacon 2021).
 
-As with all difference-in-differences studies, my identifying assumption is the parallel trends assumption. Different versions of the parallel trends assumption may apply here, and there are trade-offs associated with each. I describe these below.
+As with all difference-in-differences studies, my identifying assumption is the parallel trends assumption. Here, this means that the outcomes I study---number of referral sources, total shared patient volume, and HHI---for the sued and unsued physicians would have evolved the same way had the sued physicians not been sued. Different versions of the parallel trends assumption may apply here, and there are trade-offs associated with each. I describe these below.
 
 As a preliminary matter, it makes sense to ask whether any kind of parallel trends assumption could reasonably apply to being sued for medical malpractice. After all, how comparable are physicians who are sued versus those who are not, especially in terms of their desirability as a referral destination?
 
-As it turns out, research going back to the Harvard Medical Practice Study suggests that claims are brought against physicians quasi-randomly. Localio et al. (1991) audit 30,195 inpatient records from New York hospitals in 1984 and link these discharges to 47 medical malpractice claims. Of the 280 discharges with adverse events more than likely caused by negligence, only 8 sued their physicians for medical malpractice; the remaining 39 medical malpractice cases either involved no adverse event or an adverse event determined to be unlikely to be caused by provider negligence. David M. Studdert et al. (2000) find similar results for Utah and Colorado in 1992. Thus, it appears that both type I and type II errors are quite common for the bringing of medical malpractice claims. Malpractice claims that result in payment do appear to be correlated with actual negligent error; however, claims are paid in only 22 percent of all claims. (Jena et al. 2011; David M. Studdert et al. 2006). Taken together, this suggests that physicians who are not sued are indeed a suitable control group for those that are.
+As it turns out, research going back to the Harvard Medical Practice Study suggests that claims are brought against physicians quasi-randomly. Localio et al. (1991) audit 30,195 inpatient records from New York hospitals in 1984 and link these discharges to 47 medical malpractice claims. Of the 280 discharges with adverse events more than likely caused by negligence, only 8 sued their physicians for medical malpractice; the remaining 39 medical malpractice cases either involved no adverse event or an adverse event determined to be unlikely to be caused by provider negligence. Studdert et al. (2000) find similar results for Utah and Colorado in 1992. Thus, it appears that both type I and type II errors are quite common for the bringing of medical malpractice claims. Malpractice claims that result in payment do appear to be correlated with actual negligent error; however, claims are paid in only 22--56 percent of all claims. (Jena et al. 2011; Studdert et al. 2006). In my data, 59 percent of claims result in payment to a plaintiff. While this is at the higher end, the modal value of payments to a patient-plaintiff in my sample is still \(\$0\). Taken together, this suggests that physicians who are not sued are indeed a suitable control group for those that are.
 
 \hypertarget{conditional-parallel-trends}{%
 \subsection{Conditional Parallel Trends}\label{conditional-parallel-trends}}
 
 Perhaps the most credible version of the parallel trends assumption in this context is the conditional parallel trends assumption. The above discussion suggests that there is a low probability of a patient's case leading to a medical malpractice lawsuit, and this probability is not well correlated with the presence of a negligence-caused adverse event. However, to the extent that the probability of being sued is distributed randomly across patients, it stands to reason that a physician who sees more patients is more likely to be sued. Indeed, Table \ref{tab:sumstats} indicates that doctors who are sued see more patients. Previous research similarly shows that the biggest difference between physicians who are sued and those who are not is that physicians who are sued have a higher patient volume. (Smith 2024; Carroll, Cutler, and Jena 2021). In addition, despite the apparent disconnect between lawsuits and negligent error, it may nonetheless be more credible to condition the parallel trends on some measure of physician care or safety.
 
-To estimate an average treatment effect on the treated (ATT) and event study using the a conditional parallel trends assumption, I use the Callaway and Sant'Anna (2021) estimator (hereinafter C\&S). Recent research has shown that in addition to the problems of staggered treatment timing, two-way fixed effects estimators are biased in the presence of time-varying covariates. (Sant'Anna and Zhao 2020). Unlike the majority of the modern difference-in-differences estimators, the C\&S estimator allows for the conditioning of the parallel trends assumption on observable covariates. Because it only requires one of the the propensity score function or the outcome regression to be correctly specified, I choose to use the doubly-robust C\&S estimator. For my propensity score function and outcome regression, I use the patient volume and the PSI rate per 1000 at-risk cases in the two years prior to the sample period as covariates. Because patient volume and error rates can vary between specialties in ways that may or may not make physicians within that specialty more likely to be sued, I also include specialty fixed effects in the propensity score function and outcome regression.
+To estimate an average treatment effect on the treated (ATT) and event study using the a conditional parallel trends assumption, I use the Callaway and Sant'Anna (2021) estimator (hereinafter C\&S). The building block of the C\&S estimator is the group-time ATT estimand
 
-To yield valid estimates, difference-in-differences with conditional parallel trends requires ``strong overlap''. (Roth et al. 2023; Callaway and Sant'Anna 2021). In other words, the conditional probability of being in the treatment group must be bounded away from \(1\), and the proportion of treated units is bounded away from zero. Figures \ref{fig:histpatvol} and \ref{fig:histpsi} report histograms of patient volume and PSI rates, respectively, by ultimate treatment status. There appears to be strong overlap between physicians who are ultimately sued and those who are not along both dimensions.
+\begin{equation}
+ATT(g,t)=\mathbb{E}[Y_t-Y_{g-1}|G_g=1] - \mathbb{E}[Y_t-Y_{g-1}|C=1]
+\label{eq:att-gt}
+\end{equation}
+
+\noindent
+where \(Y_{t}\) is one of the outcomes discussed above in year \(t\), \(G_g=1\) means that doctors are sued in year \(g\), and \(C=1\) means that doctors are never sued before 2015. Recent research has shown that in addition to the problems of staggered treatment timing, two-way fixed effects estimators are biased in the presence of time-varying covariates. (Sant'Anna and Zhao 2020). Unlike the majority of the modern difference-in-differences estimators, the C\&S estimator allows for the conditioning of the parallel trends assumption on observable covariates. Because it only requires one of the the propensity score function or the outcome regression to be correctly specified, I choose to use the doubly-robust C\&S estimator. Specifically, using the C\&S estimator, I estimate \(ATT(g,t)\) by
+
+\begin{equation}
+ATT^{nev}_{dr}(g,t)=\mathbb{E}\left[ \left( \frac{G_g}{\mathbb{E}[G_g]}-\frac{\frac{p_g(X)C}{1-p_g(X)}}{\mathbb{E}\left[ \frac{p_g(X)C}{1-p_g(X)} \right]} \right) (Y_t-Y_{g-1}-m^{nev}_{g,t}(X)) \right]
+\label{eq:dr-nvr}
+\end{equation}
+
+For propensity score function \(p(X)\) and outcome regression \(m^{nev}_{g,t}(X)\), I use the patient volume and the PSI rate per 1000 at-risk cases in the two years prior to the sample period as covariates. Because patient volume and error rates can vary between specialties in ways that may or may not make physicians within that specialty more likely to be sued, I also include specialty fixed effects in the propensity score function and outcome regression.
+
+To yield valid estimates, difference-in-differences with conditional parallel trends requires ``strong overlap''. (Roth et al. 2023; Callaway and Sant'Anna 2021). In other words, the conditional probability of being in the treatment group must be bounded away from \(1\), and the proportion of treated units is bounded away from zero. Figure \ref{fig:histpscore} reports the distribution of the estimated propensity score function by ultimate treatment status. There appears to be strong overlap between physicians who are ultimately sued and those who are not.
 
 The C\&S estimator works by estimating group-time ATTs, which can then be aggregated in any number of ways. For each outcome and treatment, I report an event study and the overall ATT, which is an across-group average of the group-specific ATTs.
 
@@ -241,21 +281,25 @@ The C\&S estimator works by estimating group-time ATTs, which can then be aggreg
 
 Random treatment timing assumes that, while treatment may not be random, when exactly treatment occurs is actually random or as good as random. Technically, random treatment timing is not a variation of the parallel trends assumption. It is instead a much stronger assumption. However, given the relative arbitrariness of being sued for malpractice discussed above, it is not a stretch to believe that the random treatment timing assumption holds here.
 
-To the extent that the random treatment timing assumption holds, it carries a significant advantage. By imposing this assumption, I am able to utilize the very efficient Roth and Sant'Anna (2023) estimator (hereinafter R\&S). This is particularly useful here because, as I will show below, I obtain many statistically insignificant results using the C\&S estimator. Using a more efficient estimator allows me to determine whether these insignificant results are true zeros or the result of relatively large standard errors.
+To the extent that the random treatment timing assumption holds, it carries a significant advantage. By imposing this assumption, I am able to utilize the very efficient Roth and Sant'Anna (2023) estimator (hereinafter R\&S). This is particularly useful here because, as I will show below, I obtain many statistically insignificant results using the C\&S estimator. Using a more efficient estimator might allow me to determine whether these insignificant results are true zeros or the result of relatively large standard errors. However, standard errors ultimately do not shrink when using the R\&S estimator here.
 
 \hypertarget{results}{%
 \section{Results}\label{results}}
 
-Estimates for the overall ATT of being sued for medical malpractice are reported by outcome in Figures \ref{fig:nsrcatt}--\ref{fig:lhhiatt}. For each outcome, I report the ATTs by their timing (Occurence, Report, Suit Filed, and Final Dispute Resolution) using both the conditional and unconditional parallel trends assumption. Results are almost universally statistically insignificant. Only one out of the 32 estimates---for volume of patients shared with Suit Filed as the timing and with an unconditional parallel trends assumption---is statistically significant, which is about what one should expect under the null hypothesis with \(\alpha=.05\). Figure \ref{fig:volsfestud} presents the event study that corresponds to this estimate, and, indeed, it does not look like there are any statistically significant results here.
+Estimates for the overall ATT of being sued for medical malpractice are reported by outcome in Figures \ref{fig:nsrcatt}--\ref{fig:lhhiatt}. For each outcome, I report the ATTs by their timing (Occurence, Report, Suit Filed, and final disposition) using both the conditional and unconditional parallel trends assumption. Results are almost universally statistically insignificant. Only one out of the 32 estimates---for volume of patients shared with Suit Filed as the timing and with an unconditional parallel trends assumption---is statistically significant, which is about what one should expect under the null hypothesis with \(\alpha=.05\). Figure \ref{fig:volsfestud} presents the event study that corresponds to this estimate, and, indeed, it does not look like there are any statistically significant results here.
 
-Confidence intervals are somewhat wide. They can fairly consistently only rule out decreases of about 8 percent relative to the sample average of any of the outcomes. Unfortunately, the Roth and Sant'Anna (2023) estimator does not yield smaller standard errors here, so these estimates are omitted.\footnote{\textbf{NOTE TO SARA}: I am not quite sure what to do about this. On the one hand, they require a stronger identifying assumption but do not generate tighter confidence intervals. On the other hand, with standard errors as large as they are for the Callaway and Sant'Anna estimates, I think an audience would want to see a more efficient estimator tried.}
+Confidence intervals are somewhat wide. They can fairly consistently only rule out decreases of about 8 percent relative to the sample average of any of the outcomes. Unfortunately, the Roth and Sant'Anna (2023) estimator does not yield smaller standard errors here, so these estimates are omitted.\footnote{\textbf{NOTE}: I am not quite sure what to do about this. On the one hand, they require a stronger identifying assumption but do not generate tighter confidence intervals. On the other hand, with standard errors as large as they are for the Callaway and Sant'Anna estimates, I think an audience would want to see a more efficient estimator tried.}
 
-Figures \ref{fig:nsrcrepestud}--\ref{fig:lhhirepestud} present a representative set of event studies for the outcomes considered. Each uses the Report date as the event time and conditions the parallel trends assumption on presample inpatient volume and PSI rate. Overall, it appears that the parallel trends assumption holds across outcomes, and none of the oucomes are affected by being sued for medical malpractice in any statistically or economically significant way.\footnote{\textbf{NOTE TO SARA}: I have also run all of these estimates for cardiologists, orthopedic surgeons, and general surgeons separately. On the orthopedic surgeons have some statistically signficant results, and I cannot tease any useful insights out of those at this point.}
+Figures \ref{fig:nsrcrepestud}--\ref{fig:lhhirepestud} present a representative set of event studies for the outcomes considered. Each uses the Report date as the event time and conditions the parallel trends assumption on presample inpatient volume and PSI rate. Overall, it appears that the parallel trends assumption holds across outcomes, and none of the oucomes are affected by being sued for medical malpractice in any statistically or economically significant way.
 
 \hypertarget{conclusion}{%
 \section{Conclusion}\label{conclusion}}
 
-I am not prepared to draw any firm conclusions at this time.
+This study estimates the effect of being sued for malpractice on a specialist's referral relationships. Specifically, I infer referrals from the sharing of patients within 90 days, and I estimate th effect on the number of referral sources, number of total referrals, and the concentration of these referrals. Across outcomes and different timing specifications, I found generally very small point estimates and no statistically significant results. These findings must be considered in the context of Smith (2024), which found that orthopedic surgeons who have been sued once are about .19 percentage points (8 percent relative to baseline) less likely to be selected than a physician who has never been sued.
+
+One interpretation of the results of this study is that the loss of demand found in Smith (2024) are driven by patients. Smith (2024) assumed that the choice of specialist was made by some convex combination of patients and referring physicians but could not distinguish between the roles of each in the decision making process. To the extent that this study finds null results for referring physicians, this would suggest that patients, rather than referring physicians care about a specialist's malpractice history. This may reflect the fact that referring physicians likely have access to additional information on specialist quality that patients do not.
+
+However, one should be cautious about overinterpreting these results. While point estimates are quite small, standard errors are fairly large. Across outcomes, I cannot rule out effect sizes as large as 8 percent. Given that is the size observed in Smith (2024), I hesitate to draw any firm conclusions until confidence intervals can be reduced in size.
 
 \hypertarget{references}{%
 \section{References}\label{references}}
@@ -299,7 +343,7 @@ Sant'Anna, Pedro H. C., and Jun Zhao. 2020. {``Doubly Robust Difference-in-Diffe
 Smith, Andrew J. D. 2024. {``Does Your Reputation Precede You? The Role of Malpractice History in the Demand for Specialist Physicians.''}
 
 \leavevmode\vadjust pre{\hypertarget{ref-StEtal2006}{}}%
-Studdert, David M., Michelle M. Mello, Atul A. Gawande, Tejal K. Gandhi, Allen Kachalia, Catherine Yoon, Ann Louise Puopolo, and Troyen A. Brennan. 2006. {``Claims, Errors, and Compensation Payments in Medical Malpractice Litigation.''} \emph{New England Journal of Medicine} 354 (19): 2024--33. \url{https://doi.org/10.1056/NEJMsa054479}.
+Studdert, David M, Michelle M Mello, Atul A Gawande, Tejal K Gandhi, Allen Kachalia, Catherine Yoon, Ann Louise Puopolo, and Troyen A Brennan. 2006. {``Claims, Errors, and Compensation Payments in Medical Malpractice Litigation.''} \emph{New England Journal of Medicine} 354 (19): 2024--33. \url{https://doi.org/10.1056/NEJMsa054479}.
 
 \leavevmode\vadjust pre{\hypertarget{ref-StEtal2000}{}}%
 Studdert, David M, Eric J Thomas, Helen R Burstin, Brett IW Zbar, E John Orav, and Troyen A Brennan. 2000. {``Negligent Care and Malpractice Claiming Behavior in Utah and Colorado.''} \emph{Medical Care}, 250--60.
@@ -345,27 +389,27 @@ Osteopathic Manipulative Medicine & 66\\
 \toprule
 Specialty & Number of Physicians\\
 \midrule
-Cardiovascular Disease (Cardiology) & 1364\\
-Orthopedic Surgery & 1147\\
-General Surgery & 927\\
-Gastroenterology & 761\\
-Hematology-Oncology & 486\\
+Cardiovascular Disease (Cardiology) & 1359\\
+Orthopedic Surgery & 1128\\
+General Surgery & 900\\
+Gastroenterology & 745\\
+Hematology-Oncology & 477\\
 \addlinespace
 Nephrology & 422\\
-Neurosurgery & 292\\
+Neurosurgery & 286\\
 Interventional Cardiology & 202\\
-Vascular Surgery & 172\\
-Thoracic Surgery & 148\\
+Vascular Surgery & 171\\
+Thoracic Surgery & 143\\
 \addlinespace
-Medical Oncology & 131\\
-Radiation Oncology & 88\\
-Cardiac Surgery & 76\\
-Colorectal Surgery (Proctology) & 74\\
-Hand Surgery & 72\\
+Medical Oncology & 129\\
+Radiation Oncology & 81\\
+Cardiac Surgery & 75\\
+Colorectal Surgery (Proctology) & 69\\
+Hand Surgery & 69\\
 \addlinespace
 Interventional Radiology & 68\\
-Gynecological Oncology & 54\\
-Surgical Oncology & 25\\
+Gynecological Oncology & 46\\
+Surgical Oncology & 22\\
 Advanced Heart Failure and Transplant Cardiology & 13\\
 Peripheral Vascular Disease & 8\\
 \addlinespace
@@ -388,12 +432,12 @@ Nuclear Medicine & 7\\
 \cmidrule(l{3pt}r{3pt}){2-3} \cmidrule(l{3pt}r{3pt}){4-5}
   & Mean & SD & Mean & SD\\
 \midrule
-Number of Sources & \num{25.05} & \num{29.70} & \num{28.50} & \num{30.67}\\
-Shared Patients & \num{621.93} & \num{938.22} & \num{694.22} & \num{884.65}\\
-HHI & \num{0.20} & \num{0.25} & \num{0.16} & \num{0.22}\\
-Log(HHI) & \num{-2.32} & \num{1.18} & \num{-2.51} & \num{1.13}\\
-Inpatient Volume (Previous 2 Years) & \num{89.94} & \num{165.89} & \num{125.85} & \num{178.91}\\
-PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num{8.89}\\
+Number of Sources & \num{13.16} & \num{14.88} & \num{14.73} & \num{15.20}\\
+Shared Patients & \num{331.09} & \num{486.45} & \num{363.89} & \num{448.83}\\
+HHI & \num{0.29} & \num{0.31} & \num{0.25} & \num{0.28}\\
+Log(HHI) & \num{-1.77} & \num{1.06} & \num{-1.92} & \num{1.03}\\
+Inpatient Volume (Previous 2 Years) & \num{90.37} & \num{166.57} & \num{126.23} & \num{179.90}\\
+PSI Rate (per 1000 at-risk cases) & \num{3.16} & \num{10.11} & \num{3.60} & \num{8.85}\\
 \bottomrule
 \end{tabular}
 \begin{tablenotes}
@@ -414,17 +458,13 @@ PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num
 
 \begin{figure}
 \centering
-\includegraphics{Paper_files/figure-latex/histpatvol-1.pdf}
-\caption{\label{fig:histpatvol}Distribution of Presample Patient Volume by Ultimate Treatment Status}
+\includegraphics{Paper_files/figure-latex/histpscore-1.pdf}
+\caption{\label{fig:histpscore}Distribution of the estimated probability of being sued for the sued (red) and unsued (blue) physicians.}
 \end{figure}
 
 \FloatBarrier
 
-\begin{figure}
-\centering
-\includegraphics{Paper_files/figure-latex/histpsi-1.pdf}
-\caption{\label{fig:histpsi}Distribution of Presample PSI Rate by Ultimate Treatment Status}
-\end{figure}
+\FloatBarrier
 
 \begin{figure}
 \centering
@@ -432,11 +472,15 @@ PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num
 \caption{\label{fig:nsrcatt}Difference-in-differences estimates of the effect of being sued for malpractice on the number of general and primary practice physicians a specialist receives referrals from.}
 \end{figure}
 
+\FloatBarrier
+
 \begin{figure}
 \centering
 \includegraphics{Paper_files/figure-latex/volatt-1.pdf}
 \caption{\label{fig:volatt}Difference-in-differences estimates of the effect of being sued for malpractice on the total volume of patients a specialist shares with general and primary practice physicians.}
 \end{figure}
+
+\FloatBarrier
 
 \begin{figure}
 \centering
@@ -444,11 +488,15 @@ PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num
 \caption{\label{fig:hhiatt}Difference-in-differences estimates of the effect of being sued for malpractice on the concentration of specialists' referrers, as measured by the HHI.}
 \end{figure}
 
+\FloatBarrier
+
 \begin{figure}
 \centering
 \includegraphics{Paper_files/figure-latex/lhhiatt-1.pdf}
 \caption{\label{fig:lhhiatt}Difference-in-differences estimates of the effect of being sued for malpractice on the concentration of specialists' referrers, as measured by log(HHI).}
 \end{figure}
+
+\FloatBarrier
 
 \begin{figure}
 \centering
@@ -456,11 +504,15 @@ PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num
 \caption{\label{fig:nsrcrepestud}Event study of the effect of being sued on the number of a specialist's referral sources. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.}
 \end{figure}
 
+\FloatBarrier
+
 \begin{figure}
 \centering
 \includegraphics{Paper_files/figure-latex/volrepestud-1.pdf}
 \caption{\label{fig:volrepestud}Event study of the effect of being sued on a specialist's volume of shared patients. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.}
 \end{figure}
+
+\FloatBarrier
 
 \begin{figure}
 \centering
@@ -468,11 +520,15 @@ PSI Rate (per 1000 at-risk cases) & \num{3.17} & \num{10.12} & \num{3.65} & \num
 \caption{\label{fig:hhirepestud}Event study of the effect of being sued on the concentration of a specialist's referrals as measured by HHI. Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.}
 \end{figure}
 
+\FloatBarrier
+
 \begin{figure}
 \centering
 \includegraphics{Paper_files/figure-latex/lhhirepestud-1.pdf}
 \caption{\label{fig:lhhirepestud}Event study of the effect of being sued on the concentration of a specialist's referrals as measured by log(HHI). Here the timing is based on the report date and the parallel trends assumption is conditioned on inpatient volume, PSI rate, and a specialty fixed effect.}
 \end{figure}
+
+\FloatBarrier
 
 \begin{figure}
 \centering

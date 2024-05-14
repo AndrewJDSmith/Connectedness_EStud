@@ -54,3 +54,18 @@ quantile(TIMES$OCC_to_REP, .95)
 quantile(TIMES$OCC_to_FIN_DISP, .95)
 
 save(TIMES, file='_DATA/TIMES.RData')
+
+
+HOW.disp <- MPL %>% 
+  group_by(MPL_FIN_METH_DISP) %>%
+  summarize(DESC=first(FIN_METH_DESC),
+            n=n())
+
+COURT.axn <- MPL %>%
+  group_by(MPL_COURT) %>%
+  summarize(COURT_DESC=first(COURT_DESC),
+            n=n())
+
+
+filter(MPL, MPL_FIN_METH_DISP!=137 & MPL_COURT %in% c(189, 190)) %>%
+  select(MPL_FIN_METH_DISP, FIN_METH_DESC)

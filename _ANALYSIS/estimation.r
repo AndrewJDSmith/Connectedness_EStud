@@ -5,6 +5,10 @@ library(did)
 library(staggered)
 library(data.table)
 
+
+# 2024.03.27: Before running this script, note which version of sample you are running,
+# the one where npi1 vs npi2 position matters or the one where it doesn't.
+
 ANSAMP.occ <- read_csv('_DATA/ANSAMP.occ.csv') %>%
   mutate(spec_prim_1_1 = as.factor(spec_prim_1_1),
          first.treat.rsa = ifelse(first.treat==0, Inf, first.treat)
@@ -47,6 +51,7 @@ ggplot() +
 timing <- c('occ', 'rep', 'sf', 'fdr')
 outcomes <- c('n_sources', 'vol_shared', 'hhi', 'lhhi')
 
+# 2024.03.27 Consider including tenure in here
 xformula.tiv <- ~ pat.vol_l2y_1_pre.samp + PSIAny_rate_l2y_1_pre.samp + spec_prim_1_1
 xformula.tv <- ~ pat.vol_l2y_1 + PSIAny_rate_l2y_1 + spec_prim_1_1
 
