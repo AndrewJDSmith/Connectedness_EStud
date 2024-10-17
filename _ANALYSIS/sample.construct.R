@@ -14,9 +14,11 @@ LNUM_NPI_xWalk <- read_csv('_DATA/LNUM_NPI_xWalk.csv')
 
 
 # 2024.02.06: Commenting below just to be able to run faster. For rep package, uncomment
-# and delelete line below.
+# and delete line below.
 # tic()
-# PSPP_90 <- fread('_DATA/PSPP_90.csv')
+# PSPP_90 <- fread('_DATA/PSPP_90.csv') %>%
+#   mutate(npi1=as.double(npi1),
+#          npi2=as.double(npi2))
 # toc()
 # 
 # 
@@ -33,6 +35,8 @@ LNUM_NPI_xWalk <- read_csv('_DATA/LNUM_NPI_xWalk.csv')
 
 
 PSPP_90 <- read_csv('_DATA/PSPP_90.Fla.csv')
+# 2024.09.03 Below is version where filtered by which docs haver primary practice location in Florida
+# PSPP_90 <- read_csv('_DATA/PSPP_90_way2.csv')
 
 PV <- read_csv('_DATA/PV.csv')
 
